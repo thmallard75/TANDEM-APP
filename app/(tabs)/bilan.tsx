@@ -1,13 +1,13 @@
 import { alert } from '@/lib/alert';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore } from '@/lib/store';
 import { ScoreBar } from '@/components/ScoreBar';
-import { Button, H1, P, Screen } from '@/components/ui';
-import { CATEGORY_LABEL, type Category, type WeeklyReport } from '@/lib/types';
-import { theme } from '@/lib/theme';
+import { Avatar, Button, Card, Empty, Header, P, Pill, Screen, SectionTitle } from '@/components/ui';
+import { CATEGORY_STYLE, theme } from '@/lib/theme';
+import type { Category, WeeklyReport } from '@/lib/types';
 
 const CATEGORIES: Category[] = ['sante', 'ecole', 'logistique', 'maison', 'social', 'admin'];
 
@@ -36,7 +36,6 @@ export default function Bilan() {
   );
 
   async function accept(taskId: string) {
-    if (!me) return;
     const { error } = await supabase.rpc('accept_transfer', { p_task_id: taskId });
     if (error) return alert('Oups', error.message);
     alert('C’est à toi', 'Les rappels et le contexte de cette tâche sont maintenant chez toi.');
@@ -46,9 +45,8 @@ export default function Bilan() {
   if (!partner) {
     return (
       <Screen>
-        <H1>Bilan</H1>
-        <P>Le bilan compare l'équipe à deux. Invite ton partenaire depuis l'onglet Foyer, et le premier score arrivera dimanche soir.</P>
-        <P muted>En attendant, Tandem garde tout en tête pour toi.</P>
+        <Header eyebrow="Bilan" title="L'équipe à deux" />
+        <Empty emoji="🤝" title="Le bilan compare l'équipe à deux" text="Invite ton partenaire depuis l'onglet Foyer. Le premier score arrive dimanche soir." />
       </Screen>
     );
   }
@@ -56,8 +54,8 @@ export default function Bilan() {
   if (!report) {
     return (
       <Screen>
-        <H1>Bilan</H1>
-        <P muted>Le premier bilan de l'équipe arrive dimanche à 18h.</P>
+        <Header eyebrow="Bilan" title="Dimanche soir" />
+        <Empty emoji="🕯️" title="Le premier bilan arrive dimanche à 18h" text="D'ici là, Tandem note tout ce que vous gérez, chacun de votre côté." />
       </Screen>
     );
   }
@@ -65,58 +63,81 @@ export default function Bilan() {
   const meScore = report.scores.total[me!.id] ?? 0;
   const partnerScore = report.scores.total[partner.id] ?? 0;
   const total = meScore + partnerScore;
-  const lean = total === 0 ? 50 : Math.round((Math.max(meScore, partnerScore) / total) * 100);
-  const who = meScore >= partnerScore ? me!.display_name : partner.display_name;
+  const pctMe = total === 0 ? 50 : Math.round((meScore / total) * 100);
+  const lean = Math.max(pctMe, 100 - pctMe);
+  const heavier = pctMe >= 50 ? me! : partner;
+  const balanced = lean <= 60;
 
   return (
-    <ScrollView>
-      <Screen>
-        <H1>Semaine du {new Date(report.week_start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</H1>
-        <P>
-          {lean <= 60
-            ? "Belle semaine : l'équipe est équilibrée."
-            : `Cette semaine, l'équipe penche à ${lean} / ${100 - lean}, surtout côté ${who}.`}
-        </P>
+    <Screen style={{ paddingHorizontal: 0 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 16 }} showsVerticalScrollIndicator={false}>
+        <Header
+          eyebrow={`Semaine du ${new Date(report.week_start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`}
+          title={balanced ? 'Belle semaine' : 'L’équipe penche'}
+        />
 
-        <View style={styles.card}>
+        <View style={[styles.hero, balanced && { backgroundColor: theme.primary }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <Avatar name={me!.display_name} size={44} />
+            <Text style={styles.heroNum}>
+              {pctMe}<Text style={styles.heroSep}> / </Text>{100 - pctMe}
+            </Text>
+            <Avatar name={partner.display_name} size={44} tone="sand" />
+          </View>
+          <Text style={styles.heroText}>
+            {balanced
+              ? 'Vous êtes à l’équilibre. Continuez comme ça.'
+              : `Cette semaine, la charge penche à ${lean} % côté ${heavier.display_name}. Voici de quoi rééquilibrer.`}
+          </Text>
+        </View>
+
+        <Card>
           {CATEGORIES.map((c) => (
             <ScoreBar
               key={c}
-              label={CATEGORY_LABEL[c]}
+              emoji={CATEGORY_STYLE[c].emoji}
+              label={CATEGORY_STYLE[c].label}
               left={report.scores.by_category?.[c]?.[me!.id] ?? 0}
               right={report.scores.by_category?.[c]?.[partner.id] ?? 0}
-              leftName={me!.display_name}
-              rightName={partner.display_name}
             />
           ))}
-        </View>
+          <Text style={styles.legend}>
+            <Text style={{ color: theme.primary }}>●</Text> {me!.display_name}   <Text style={{ color: theme.sandDeep }}>●</Text> {partner.display_name}
+          </Text>
+        </Card>
 
         {report.suggestions.length > 0 && (
           <>
-            <Text style={styles.h2}>Pour rééquilibrer la semaine prochaine</Text>
+            <SectionTitle>Pour la semaine prochaine</SectionTitle>
             {report.suggestions.map((s) => {
               const forMe = s.to_member_id === me!.id;
+              const cat = CATEGORY_STYLE[s.category];
               return (
-                <View key={s.task_id} style={styles.card}>
-                  <Text style={styles.title}>{s.title}</Text>
+                <Card key={s.task_id}>
+                  <Pill bg={cat.bg} fg={cat.fg}>{cat.emoji} {cat.label}</Pill>
+                  <Text style={styles.sugTitle}>{s.title}</Text>
                   <P muted>{s.why}</P>
                   {forMe ? (
-                    <Button title="Je reprends" onPress={() => accept(s.task_id)} />
+                    <Button title="Je reprends" onPress={() => accept(s.task_id)} variant="accent" />
                   ) : (
-                    <Text style={{ color: theme.muted }}>Proposée à {partner.display_name}</Text>
+                    <Text style={styles.proposed}>Proposée à {partner.display_name}</Text>
                   )}
-                </View>
+                </Card>
               );
             })}
           </>
         )}
-      </Screen>
-    </ScrollView>
+      </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: theme.card, borderRadius: theme.radius, padding: 16, gap: 14, borderWidth: 1, borderColor: theme.line },
-  h2: { fontSize: 18, fontWeight: '700', color: theme.text, marginTop: 8 },
-  title: { fontSize: 16, fontWeight: '600', color: theme.text },
+  hero: { backgroundColor: theme.primaryDeep, borderRadius: 28, padding: 24, gap: 16, alignItems: 'center', ...theme.shadow },
+  heroNum: { fontFamily: theme.display, fontSize: 48, color: '#fff', letterSpacing: -1 },
+  heroSep: { color: 'rgba(255,255,255,0.5)', fontSize: 32 },
+  heroText: { fontFamily: theme.body, fontSize: 16, color: 'rgba(255,255,255,0.92)', textAlign: 'center', lineHeight: 24 },
+  legend: { fontFamily: theme.body, fontSize: 13, color: theme.muted, textAlign: 'center', marginTop: 4 },
+  sugTitle: { fontFamily: theme.display, fontSize: 20, color: theme.ink },
+  proposed: { fontFamily: theme.bodyMedium, fontSize: 13, color: theme.muted },
 });

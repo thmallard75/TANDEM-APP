@@ -17,18 +17,51 @@
     },
     "android": {
       "package": "fr.tandem.app",
-      "permissions": ["READ_CALENDAR", "RECORD_AUDIO"]
+      "permissions": [
+        "READ_CALENDAR",
+        "RECORD_AUDIO"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#19233C"
+      }
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      ["expo-calendar", { "calendarPermission": "Tandem lit vos calendriers pour repérer les tâches familiales." }],
-      ["expo-audio", { "microphonePermission": "Tandem écoute 3 secondes pour noter ce que vous venez de gérer." }],
-      "expo-notifications"
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Tandem lit vos calendriers pour repérer les tâches familiales."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Tandem écoute 3 secondes pour noter ce que vous venez de gérer."
+        }
+      ],
+      "expo-notifications",
+      "expo-font"
     ],
-    "experiments": { "typedRoutes": true },
+    "experiments": {
+      "typedRoutes": true
+    },
     "extra": {
-      "eas": { "projectId": "" }
+      "eas": {
+        "projectId": ""
+      }
+    },
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#19233C"
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "bundler": "metro",
+      "output": "single"
     }
   }
 }

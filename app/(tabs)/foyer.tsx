@@ -1,10 +1,11 @@
 import { alert } from '@/lib/alert';
 import { useState } from 'react';
-import { ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore } from '@/lib/store';
 import { syncDeviceCalendars } from '@/lib/calendar';
-import { Button, H1, Input, P, Screen } from '@/components/ui';
+import { Avatar, Button, Card, Header, Input, P, Screen, SectionTitle } from '@/components/ui';
 import { theme } from '@/lib/theme';
 
 export default function Foyer() {
@@ -15,9 +16,12 @@ export default function Foyer() {
 
   async function invite() {
     if (!household) return;
-    await Share.share({
-      message: `Rejoins notre foyer sur Tandem avec le code ${household.invite_code} — on verra enfin qui porte quoi 😉`,
-    });
+    const message = `Rejoins notre foyer sur Tandem avec le code ${household.invite_code} — on verra enfin qui porte quoi 😉`;
+    if (Platform.OS === 'web') {
+      await navigator.clipboard?.writeText(message);
+      return alert('Message copié', 'Colle-le dans WhatsApp ou un SMS à ton partenaire.');
+    }
+    await Share.share({ message });
   }
 
   async function addChild() {
@@ -30,6 +34,7 @@ export default function Foyer() {
 
   async function sync() {
     if (!household || !me) return;
+    if (Platform.OS === 'web') return alert('Depuis le téléphone', 'La lecture des calendriers se fait dans l’app mobile (Expo Go).');
     setSyncing(true);
     try {
       const r = await syncDeviceCalendars(household.id, me.id);
@@ -44,46 +49,89 @@ export default function Foyer() {
   }
 
   return (
-    <ScrollView>
-      <Screen>
-        <H1>{household?.name}</H1>
+    <Screen style={{ paddingHorizontal: 0 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 16 }} showsVerticalScrollIndicator={false}>
+        <Header eyebrow="Foyer" title={household?.name ?? ''} />
 
-        <Text style={styles.h2}>L'équipe</Text>
-        <View style={styles.card}>
+        <SectionTitle>L'équipe</SectionTitle>
+        <Card>
           {members.map((m) => (
-            <Text key={m.id} style={styles.line}>
-              {m.display_name}
-              {m.id === me?.id ? ' (toi)' : ''}
-            </Text>
+            <View key={m.id} style={styles.row}>
+              <Avatar name={m.display_name} size={36} tone={m.id === me?.id ? 'primary' : 'sand'} />
+              <Text style={styles.name}>{m.display_name}</Text>
+              {m.id === me?.id && <Text style={styles.you}>toi</Text>}
+            </View>
           ))}
-          {!partner && <Button title="Inviter mon partenaire" onPress={invite} variant="ghost" />}
-        </View>
+          {!partner && (
+            <>
+              <View style={styles.inviteBox}>
+                <Text style={styles.code}>{household?.invite_code}</Text>
+                <Text style={styles.codeLabel}>code d'invitation</Text>
+              </View>
+              <Button title="Inviter mon partenaire" onPress={invite} icon={<Ionicons name="paper-plane" size={16} color="#fff" />} />
+            </>
+          )}
+        </Card>
 
-        <Text style={styles.h2}>Les enfants</Text>
-        <View style={styles.card}>
-          {children.map((c) => (
-            <Text key={c.id} style={styles.line}>{c.first_name}</Text>
-          ))}
-          <Input placeholder="Prénom" value={childName} onChangeText={setChildName} />
-          <Button title="Ajouter" onPress={addChild} variant="ghost" />
-        </View>
+        <SectionTitle>Les enfants</SectionTitle>
+        <Card>
+          {children.length === 0 && <P muted>Ajoute leurs prénoms : Tandem s'en sert pour relier les tâches au bon enfant.</P>}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {children.map((c) => (
+              <View key={c.id} style={styles.chip}>
+                <Text style={styles.chipText}>{c.first_name}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Input placeholder="Prénom" value={childName} onChangeText={setChildName} onSubmitEditing={addChild} autoCapitalize="words" />
+            </View>
+            <Pressable onPress={addChild} style={styles.addBtn}>
+              <Ionicons name="add" size={24} color="#fff" />
+            </Pressable>
+          </View>
+        </Card>
 
-        <Text style={styles.h2}>Connecteurs</Text>
-        <View style={styles.card}>
-          <P>Calendriers du téléphone</P>
-          <P muted>Lecture seule. Tandem repère les tâches familiales dans les 30 prochains jours.</P>
-          <Button title="Synchroniser maintenant" onPress={sync} loading={syncing} />
-          <P muted>Gmail arrive en v1.1, après validation Google.</P>
-        </View>
+        <SectionTitle>Connecteurs</SectionTitle>
+        <Card>
+          <View style={styles.row}>
+            <View style={[styles.iconBox, { backgroundColor: theme.primarySoft }]}>
+              <Ionicons name="calendar" size={20} color={theme.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>Calendriers du téléphone</Text>
+              <Text style={styles.sub}>Lecture seule · 30 prochains jours</Text>
+            </View>
+          </View>
+          <Button title="Synchroniser maintenant" onPress={sync} loading={syncing} variant="ghost" />
+          <View style={[styles.row, { opacity: 0.55 }]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.accentSoft }]}>
+              <Ionicons name="mail" size={20} color={theme.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>Gmail</Text>
+              <Text style={styles.sub}>Bientôt · en attente de validation Google</Text>
+            </View>
+          </View>
+        </Card>
 
-        <Button title="Se déconnecter" onPress={() => supabase.auth.signOut()} variant="ghost" />
-      </Screen>
-    </ScrollView>
+        <Button title="Se déconnecter" onPress={() => supabase.auth.signOut()} variant="quiet" />
+      </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  h2: { fontSize: 18, fontWeight: '700', color: theme.text, marginTop: 6 },
-  card: { backgroundColor: theme.card, borderRadius: theme.radius, padding: 16, gap: 10, borderWidth: 1, borderColor: theme.line },
-  line: { fontSize: 16, color: theme.text },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  name: { fontFamily: theme.bodyMedium, fontSize: 16, color: theme.ink, flex: 1 },
+  sub: { fontFamily: theme.body, fontSize: 13, color: theme.muted },
+  you: { fontFamily: theme.bodyMedium, fontSize: 12, color: theme.muted },
+  inviteBox: { backgroundColor: theme.bgDeep, borderRadius: theme.radiusSm, padding: 14, alignItems: 'center', gap: 2 },
+  code: { fontFamily: theme.display, fontSize: 24, color: theme.ink, letterSpacing: 2 },
+  codeLabel: { fontFamily: theme.body, fontSize: 12, color: theme.muted },
+  chip: { backgroundColor: theme.primarySoft, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
+  chipText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.primaryDeep },
+  addBtn: { width: 50, height: 50, borderRadius: 14, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
+  iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

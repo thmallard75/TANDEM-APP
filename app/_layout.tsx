@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
+import { useAppFonts } from '@/lib/fonts';
 import { theme } from '@/lib/theme';
 
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function RootLayout() {
+  const fontsLoaded = useAppFonts();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const { household, loading, load, reset } = useStore();
   const segments = useSegments();
@@ -25,16 +31,16 @@ export default function RootLayout() {
     else reset();
   }, [session]);
 
-  // Garde de navigation : non connecté → login ; connecté sans foyer → onboarding ; sinon tabs.
   useEffect(() => {
-    if (session === undefined || loading) return;
+    if (session === undefined || loading || !fontsLoaded) return;
+    SplashScreen.hideAsync().catch(() => {});
     const inAuth = segments[0] === '(auth)';
     if (!session && !inAuth) router.replace('/(auth)/login');
     else if (session && !household && segments[1] !== 'onboarding') router.replace('/(auth)/onboarding');
     else if (session && household && inAuth) router.replace('/(tabs)');
-  }, [session, household, loading, segments]);
+  }, [session, household, loading, segments, fontsLoaded]);
 
-  if (session === undefined || (session && loading)) {
+  if (!fontsLoaded || session === undefined || (session && loading)) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg }}>
         <ActivityIndicator color={theme.primary} />
@@ -43,13 +49,13 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="task/[id]" options={{ headerShown: true, title: 'Tâche', headerBackTitle: 'Retour' }} />
+        <Stack.Screen name="task/[id]" options={{ presentation: 'modal' }} />
       </Stack>
-    </>
+    </SafeAreaProvider>
   );
 }

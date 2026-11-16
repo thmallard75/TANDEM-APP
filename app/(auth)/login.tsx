@@ -1,22 +1,21 @@
 import { alert } from '@/lib/alert';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
-import { Button, H1, Input, P, Screen } from '@/components/ui';
+import { Button, Card, Input, P, Screen } from '@/components/ui';
+import { theme } from '@/lib/theme';
 
-/** Connexion par lien magique : pas de mot de passe à retenir, un parent fatigué dit merci. */
 export default function Login() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function send() {
-    if (!email.includes('@')) return;
+    if (!email.includes('@')) return alert('Entre une adresse email valide');
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      // Web : revient sur l'URL courante (Codespace, Vercel…) ; natif : deep link tandem://
       options: { emailRedirectTo: Platform.OS === 'web' ? window.location.origin : Linking.createURL('/') },
     });
     setLoading(false);
@@ -26,25 +25,53 @@ export default function Login() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen>
-        <H1>Tandem</H1>
-        <P muted>Voir enfin qui porte quoi, et rééquilibrer en un geste.</P>
-        {sent ? (
-          <P>Un lien de connexion vient de partir vers {email}. Ouvre-le sur ce téléphone.</P>
-        ) : (
-          <>
-            <Input
-              placeholder="ton@email.fr"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <Button title="Recevoir mon lien de connexion" onPress={send} loading={loading} />
-          </>
-        )}
+      <Screen style={{ justifyContent: 'center', gap: 28 }}>
+        <View style={{ alignItems: 'center', gap: 14 }}>
+          <View style={styles.mark}>
+            <Image source={require('@/assets/icon.png')} style={{ width: 120, height: 120 }} resizeMode="cover" />
+          </View>
+          <Text style={styles.brand}>Tandem</Text>
+          <Text style={styles.tagline}>
+            Vois enfin qui porte quoi.{'\n'}
+            <Text style={{ fontFamily: theme.displayItalic }}>Rééquilibre en un geste.</Text>
+          </Text>
+        </View>
+
+        <Card>
+          {sent ? (
+            <>
+              <Text style={styles.cardTitle}>Regarde ta boîte mail ✉️</Text>
+              <P muted>Un lien de connexion est parti vers {email}. Ouvre-le ici, sur cet appareil.</P>
+              <Button title="Renvoyer" onPress={send} variant="quiet" />
+            </>
+          ) : (
+            <>
+              <Text style={styles.cardTitle}>Pas de mot de passe</Text>
+              <P muted>Tu reçois un lien, tu cliques, tu es connecté·e.</P>
+              <Input
+                placeholder="ton@email.fr"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                value={email}
+                onChangeText={setEmail}
+                onSubmitEditing={send}
+              />
+              <Button title="Recevoir mon lien" onPress={send} loading={loading} />
+            </>
+          )}
+        </Card>
+
+        <Text style={styles.foot}>Lecture seule sur tes calendriers. Rien n'est modifié, rien n'est partagé.</Text>
       </Screen>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  mark: { width: 120, height: 120, borderRadius: 32, overflow: 'hidden', ...theme.shadow, shadowOpacity: 0.2 },
+  brand: { fontFamily: theme.display, fontSize: 40, color: theme.ink, letterSpacing: -1 },
+  tagline: { fontFamily: theme.display, fontSize: 20, color: theme.inkSoft, textAlign: 'center', lineHeight: 28 },
+  cardTitle: { fontFamily: theme.display, fontSize: 22, color: theme.ink },
+  foot: { fontFamily: theme.body, fontSize: 13, color: theme.muted, textAlign: 'center', lineHeight: 19 },
+});

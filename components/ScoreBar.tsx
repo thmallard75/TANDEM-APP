@@ -2,53 +2,50 @@ import { StyleSheet, Text, View } from 'react-native';
 import { theme } from '@/lib/theme';
 
 /**
- * Barre de répartition de l'équipe. Toujours formulée côté "équipe",
- * jamais "X a fait 70 %".
+ * Barre de répartition d'une catégorie. Toujours "l'équipe", jamais "X a fait 70 %".
+ * Le point central marque l'équilibre ; la zone ±10 est verte.
  */
 export function ScoreBar({
+  emoji,
   label,
   left,
   right,
-  leftName,
-  rightName,
 }: {
+  emoji: string;
   label: string;
   left: number;
   right: number;
-  leftName: string;
-  rightName: string;
 }) {
   const total = left + right;
   const pctLeft = total === 0 ? 50 : Math.round((left / total) * 100);
-  const pctRight = 100 - pctLeft;
   const balanced = Math.abs(pctLeft - 50) <= 10;
 
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label}>
+          {emoji}  {label}
+        </Text>
         <Text style={[styles.pct, balanced && { color: theme.primary }]}>
-          {total === 0 ? '—' : `${pctLeft} / ${pctRight}`}
+          {total === 0 ? 'rien cette semaine' : balanced ? 'équilibré' : `${pctLeft} / ${100 - pctLeft}`}
         </Text>
       </View>
-      <View style={styles.bar}>
-        <View style={[styles.fill, { flex: pctLeft, backgroundColor: theme.primary }]} />
-        <View style={[styles.fill, { flex: pctRight, backgroundColor: '#C9B8A1' }]} />
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.name}>{leftName}</Text>
-        <Text style={styles.name}>{rightName}</Text>
+      <View style={styles.track}>
+        <View style={[styles.left, { flex: pctLeft }]} />
+        <View style={[styles.right, { flex: 100 - pctLeft }]} />
+        <View style={styles.center} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 6 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  label: { fontSize: 15, fontWeight: '600', color: theme.text },
-  pct: { fontSize: 15, fontWeight: '600', color: theme.muted },
-  bar: { flexDirection: 'row', height: 10, borderRadius: 5, overflow: 'hidden' },
-  fill: { height: 10 },
-  name: { fontSize: 12, color: theme.muted },
+  wrap: { gap: 8 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  label: { fontFamily: theme.bodyMedium, fontSize: 15, color: theme.ink },
+  pct: { fontFamily: theme.bodyMedium, fontSize: 13, color: theme.muted },
+  track: { flexDirection: 'row', height: 12, borderRadius: 6, overflow: 'hidden', backgroundColor: theme.bgDeep },
+  left: { backgroundColor: theme.primary, borderTopLeftRadius: 6, borderBottomLeftRadius: 6 },
+  right: { backgroundColor: theme.sand, borderTopRightRadius: 6, borderBottomRightRadius: 6 },
+  center: { position: 'absolute', left: '50%', top: -2, width: 2, height: 16, backgroundColor: theme.bg, marginLeft: -1 },
 });
