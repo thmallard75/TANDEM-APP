@@ -1,10 +1,11 @@
 import { alert } from '@/lib/alert';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore } from '@/lib/store';
 import { syncDeviceCalendars } from '@/lib/calendar';
+import { getIcsConnector, removeIcs, saveIcsUrl, syncIcs, type IcsConnector } from '@/lib/ics';
 import { Avatar, Button, Card, Header, Input, P, Screen, SectionTitle } from '@/components/ui';
 import { theme } from '@/lib/theme';
 
@@ -13,6 +14,9 @@ export default function Foyer() {
   const partner = partnerOf(me, members);
   const [childName, setChildName] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const [ics, setIcs] = useState<IcsConnector | null>(null);
+  const [icsUrl, setIcsUrl] = useState('');
+  const [icsBusy, setIcsBusy] = useState(false);
 
   async function invite() {
     if (!household) return;
@@ -32,9 +36,53 @@ export default function Foyer() {
     await load();
   }
 
+  useEffect(() => {
+    if (me) getIcsConnector(me.id).then(setIcs);
+  }, [me?.id]);
+
+  async function syncOnline() {
+    if (!household || !me) return;
+    setIcsBusy(true);
+    try {
+      const n = await syncIcs(household.id, me.id);
+      alert('Agenda lu', n ? `${n} nouvelle(s) tâche(s) repérée(s).` : 'Rien de nouveau côté famille dans les 30 prochains jours.');
+      setIcs(await getIcsConnector(me.id));
+      await load();
+    } catch (e: any) {
+      alert('Oups', e.message ?? 'La lecture de l\u2019agenda a échoué');
+    } finally {
+      setIcsBusy(false);
+    }
+  }
+
+  async function connectIcs() {
+    if (!me) return;
+    const url = icsUrl.trim();
+    if (!/^(https|webcal):\/\//i.test(url)) return alert('Lien incomplet', 'Colle le lien entier, il commence par https://');
+    setIcsBusy(true);
+    try {
+      await saveIcsUrl(me.id, url);
+      setIcsUrl('');
+      setIcs(await getIcsConnector(me.id));
+    } catch (e: any) {
+      setIcsBusy(false);
+      return alert('Oups', e.message ?? 'Enregistrement impossible');
+    }
+    await syncOnline();
+  }
+
+  async function disconnectIcs() {
+    if (!me) return;
+    try {
+      await removeIcs(me.id);
+      setIcs(null);
+    } catch (e: any) {
+      alert('Oups', e.message ?? 'Suppression impossible');
+    }
+  }
+
   async function sync() {
     if (!household || !me) return;
-    if (Platform.OS === 'web') return alert('Depuis le téléphone', 'La lecture des calendriers se fait dans l’app mobile (Expo Go).');
     setSyncing(true);
     try {
       const r = await syncDeviceCalendars(household.id, me.id);
@@ -93,19 +141,57 @@ export default function Foyer() {
           </View>
         </Card>
 
-        <SectionTitle>Connecteurs</SectionTitle>
+        <SectionTitle>Agendas</SectionTitle>
         <Card>
           <View style={styles.row}>
             <View style={[styles.iconBox, { backgroundColor: theme.primarySoft }]}>
-              <Ionicons name="calendar" size={20} color={theme.mint} />
+              <Ionicons name="link" size={20} color={theme.mint} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.name}>Calendriers du téléphone</Text>
-              <Text style={styles.sub}>Lecture seule · 30 prochains jours</Text>
+              <Text style={styles.name}>Agenda en ligne</Text>
+              <Text style={styles.sub}>
+                {ics
+                  ? ics.last_sync_at
+                    ? `Connecté · lu le ${new Date(ics.last_sync_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`
+                    : 'Connecté'
+                  : 'Google Agenda, Outlook, iCloud · lecture seule'}
+              </Text>
             </View>
           </View>
-          <Button title="Synchroniser maintenant" onPress={sync} loading={syncing} variant="ghost" />
-          <View style={[styles.row, { opacity: 0.55 }]}>
+          {ics ? (
+            <>
+              <Button title="Synchroniser maintenant" onPress={syncOnline} loading={icsBusy} variant="ghost" />
+              <Button title="Retirer cet agenda" onPress={disconnectIcs} variant="quiet" />
+            </>
+          ) : (
+            <>
+              <P muted>
+                Dans Google Agenda : Paramètres → ton agenda → « Adresse secrète au format iCal ». Copie ce lien et colle-le ici.
+              </P>
+              <Input placeholder="https://calendar.google.com/calendar/ical/…" autoCapitalize="none" autoCorrect={false} value={icsUrl} onChangeText={setIcsUrl} />
+              <Button title="Connecter mon agenda" onPress={connectIcs} loading={icsBusy} />
+              <Text style={styles.sub}>Ce lien donne accès en lecture à ton agenda : ne le partage avec personne d'autre.</Text>
+            </>
+          )}
+        </Card>
+
+        {Platform.OS !== 'web' && (
+          <Card>
+            <View style={styles.row}>
+              <View style={[styles.iconBox, { backgroundColor: theme.primarySoft }]}>
+                <Ionicons name="calendar" size={20} color={theme.mint} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>Calendriers du téléphone</Text>
+                <Text style={styles.sub}>Lecture seule · 30 prochains jours</Text>
+              </View>
+            </View>
+            <Button title="Synchroniser maintenant" onPress={sync} loading={syncing} variant="ghost" />
+          </Card>
+        )}
+
+        <Card style={{ opacity: 0.6 }}>
+          <View style={styles.row}>
             <View style={[styles.iconBox, { backgroundColor: theme.accentSoft }]}>
               <Ionicons name="mail" size={20} color={theme.accent} />
             </View>

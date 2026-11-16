@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from './supabase';
+import { syncIcs } from './ics';
 import type { Household, Member, Child, Task } from './types';
 
 interface State {
@@ -12,6 +13,9 @@ interface State {
   load: () => Promise<void>;
   reset: () => void;
 }
+
+// L'agenda en ligne est relu une fois à chaque ouverture de l'app, en arrière-plan.
+let icsSyncedThisSession = false;
 
 export const useStore = create<State>((set, get) => ({
   loading: true,
@@ -52,6 +56,15 @@ export const useStore = create<State>((set, get) => ({
       children: children ?? [],
       tasks: tasks ?? [],
     });
+
+    if (!icsSyncedThisSession) {
+      icsSyncedThisSession = true;
+      syncIcs(me.household_id, me.id)
+        .then((n) => {
+          if (n) get().load();
+        })
+        .catch(() => {});
+    }
   },
 
   reset() {
