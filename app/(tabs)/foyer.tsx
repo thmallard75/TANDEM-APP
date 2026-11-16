@@ -1,5 +1,6 @@
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore } from '@/lib/store';
 import { syncDeviceCalendars } from '@/lib/calendar';
@@ -22,7 +23,7 @@ export default function Foyer() {
   async function addChild() {
     if (!childName.trim() || !household) return;
     const { error } = await supabase.from('children').insert({ household_id: household.id, first_name: childName.trim() });
-    if (error) return Alert.alert('Oups', error.message);
+    if (error) return alert('Oups', error.message);
     setChildName('');
     await load();
   }
@@ -32,11 +33,11 @@ export default function Foyer() {
     setSyncing(true);
     try {
       const r = await syncDeviceCalendars(household.id, me.id);
-      if (r.denied) Alert.alert('Accès refusé', 'Autorise le calendrier dans les réglages du téléphone.');
-      else Alert.alert('Synchronisé', `${r.synced} nouvelle(s) tâche(s) repérée(s).`);
+      if (r.denied) alert('Accès refusé', 'Autorise le calendrier dans les réglages du téléphone.');
+      else alert('Synchronisé', `${r.synced} nouvelle(s) tâche(s) repérée(s).`);
       await load();
     } catch (e: any) {
-      Alert.alert('Oups', e.message ?? 'La synchro a échoué');
+      alert('Oups', e.message ?? 'La synchro a échoué');
     } finally {
       setSyncing(false);
     }

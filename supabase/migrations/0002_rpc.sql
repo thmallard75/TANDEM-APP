@@ -22,3 +22,15 @@ begin
   insert into task_layers (task_id, layer, member_id, weight) values (p_task_id, 'anticipate', v_me, 3);
 end $$;
 revoke execute on function accept_transfer(uuid) from anon, public;
+
+-- Ajout 2026-11-16 : création du foyer + premier membre en une transaction
+create or replace function create_household(p_name text, p_display_name text) returns uuid language plpgsql security definer set search_path = public as $$
+declare v_household uuid;
+begin
+  if auth.uid() is null then raise exception 'Non connecté'; end if;
+  if exists (select 1 from members where user_id = auth.uid()) then raise exception 'Tu fais déjà partie d''un foyer'; end if;
+  insert into households (name) values (p_name) returning id into v_household;
+  insert into members (household_id, user_id, display_name) values (v_household, auth.uid(), p_display_name);
+  return v_household;
+end $$;
+revoke execute on function create_household(text, text) from anon, public;

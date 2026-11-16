@@ -1,5 +1,6 @@
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 import { Button, H1, Input, P, Screen } from '@/components/ui';
@@ -19,7 +20,7 @@ export default function Login() {
       options: { emailRedirectTo: Platform.OS === 'web' ? window.location.origin : Linking.createURL('/') },
     });
     setLoading(false);
-    if (error) return Alert.alert('Oups', error.message);
+    if (error) return alert('Oups', error.message);
     setSent(true);
   }
 

@@ -1,5 +1,6 @@
+import { alert } from '@/lib/alert';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
@@ -20,7 +21,7 @@ export default function TaskScreen() {
 
   async function setStatus(status: 'done' | 'dismissed') {
     const { error } = await supabase.from('tasks').update({ status }).eq('id', id);
-    if (error) return Alert.alert('Oups', error.message);
+    if (error) return alert('Oups', error.message);
     if (status === 'done' && me) {
       // Marquer "fait" = la couche exécution est à moi.
       await supabase.from('task_layers').insert({ task_id: id, layer: 'execute', member_id: me.id, weight: 1 });
@@ -31,7 +32,7 @@ export default function TaskScreen() {
 
   async function takeOver() {
     const { error } = await supabase.rpc('accept_transfer', { p_task_id: id });
-    if (error) return Alert.alert('Oups', error.message);
+    if (error) return alert('Oups', error.message);
     await load();
     router.back();
   }

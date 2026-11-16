@@ -1,5 +1,6 @@
+import { alert } from '@/lib/alert';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '@/lib/store';
 import { submitVoiceNote } from '@/lib/voice';
 import { TaskCard } from '@/components/TaskCard';
@@ -42,7 +43,7 @@ export default function Today() {
       setOpen(false);
       await load();
     } catch (e: any) {
-      Alert.alert('Oups', e.message ?? 'Réessaie dans un instant');
+      alert('Oups', e.message ?? 'Réessaie dans un instant');
     } finally {
       setSending(false);
     }

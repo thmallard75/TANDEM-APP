@@ -1,5 +1,6 @@
+import { alert } from '@/lib/alert';
 import { useState } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
 import { Button, H1, Input, P, Screen } from '@/components/ui';
@@ -16,31 +17,28 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
 
   async function createHousehold() {
-    if (!name || !household) return;
+    if (!name.trim()) return alert('Il manque ton prénom');
+    if (!household.trim()) return alert('Donne un nom au foyer');
     setLoading(true);
-    const { data: auth } = await supabase.auth.getUser();
-    const { data: h, error } = await supabase.from('households').insert({ name: household }).select().single();
-    if (error || !h) {
-      setLoading(false);
-      return Alert.alert('Oups', error?.message ?? 'Impossible de créer le foyer');
-    }
-    const { error: e2 } = await supabase
-      .from('members')
-      .insert({ household_id: h.id, user_id: auth.user!.id, display_name: name });
+    const { error } = await supabase.rpc('create_household', {
+      p_name: household.trim(),
+      p_display_name: name.trim(),
+    });
     setLoading(false);
-    if (e2) return Alert.alert('Oups', e2.message);
+    if (error) return alert('Oups', error.message);
     await load();
   }
 
   async function joinHousehold() {
-    if (!name || !code) return;
+    if (!name.trim()) return alert('Il manque ton prénom');
+    if (!code.trim()) return alert('Il manque le code du foyer');
     setLoading(true);
     const { data, error } = await supabase.rpc('join_household', {
       p_invite_code: code.trim().toLowerCase(),
       p_display_name: name,
     });
     setLoading(false);
-    if (error || !data) return Alert.alert('Code inconnu', 'Vérifie le code avec ton partenaire.');
+    if (error || !data) return alert('Code inconnu', 'Vérifie le code avec ton partenaire.');
     await load();
   }
 

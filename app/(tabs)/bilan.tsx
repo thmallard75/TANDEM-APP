@@ -1,5 +1,6 @@
+import { alert } from '@/lib/alert';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore } from '@/lib/store';
@@ -37,8 +38,8 @@ export default function Bilan() {
   async function accept(taskId: string) {
     if (!me) return;
     const { error } = await supabase.rpc('accept_transfer', { p_task_id: taskId });
-    if (error) return Alert.alert('Oups', error.message);
-    Alert.alert('C’est à toi', 'Les rappels et le contexte de cette tâche sont maintenant chez toi.');
+    if (error) return alert('Oups', error.message);
+    alert('C’est à toi', 'Les rappels et le contexte de cette tâche sont maintenant chez toi.');
     await load();
   }
 
