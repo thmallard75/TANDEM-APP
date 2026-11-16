@@ -17,6 +17,9 @@ export default function Foyer() {
   const [ics, setIcs] = useState<IcsConnector | null>(null);
   const [icsUrl, setIcsUrl] = useState('');
   const [icsBusy, setIcsBusy] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   async function invite() {
     if (!household) return;
@@ -34,6 +37,20 @@ export default function Foyer() {
     if (error) return alert('Oups', error.message);
     setChildName('');
     await load();
+  }
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setIsGuest(!!data.user?.is_anonymous));
+  }, []);
+
+  async function savePassword() {
+    if (newPassword.length < 6) return alert('Mot de passe trop court', 'Il faut au moins 6 caractères.');
+    setPwBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwBusy(false);
+    if (error) return alert('Oups', error.message);
+    setNewPassword('');
+    alert('C\u2019est enregistré', 'Tu peux maintenant te connecter partout avec ton email et ce mot de passe.');
   }
 
   useEffect(() => {
@@ -201,6 +218,17 @@ export default function Foyer() {
             </View>
           </View>
         </Card>
+
+        {!isGuest && (
+          <>
+            <SectionTitle>Mon compte</SectionTitle>
+            <Card>
+              <P muted>Choisis un mot de passe pour te connecter sur tes autres appareils sans passer par un mail.</P>
+              <Input placeholder="Nouveau mot de passe" secureTextEntry autoCapitalize="none" value={newPassword} onChangeText={setNewPassword} />
+              <Button title="Enregistrer le mot de passe" onPress={savePassword} loading={pwBusy} variant="ghost" />
+            </Card>
+          </>
+        )}
 
         <Button title="Se déconnecter" onPress={() => supabase.auth.signOut()} variant="quiet" />
       </ScrollView>
