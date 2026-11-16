@@ -5,7 +5,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
-import { Avatar, Button, Card, P, Pill, Screen } from '@/components/ui';
+import { Avatar, Button, Card, Input, P, Pill, Screen } from '@/components/ui';
+import { dayFromNow, formatDue, nextWeekday, parseFrenchDate } from '@/lib/dates';
 import { CATEGORY_STYLE, theme } from '@/lib/theme';
 import { LAYER_LABEL, type Task, type TaskLayer } from '@/lib/types';
 
@@ -14,6 +15,7 @@ export default function TaskScreen() {
   const { members, me, load, celebrate } = useStore();
   const [task, setTask] = useState<Task | null>(null);
   const [layers, setLayers] = useState<TaskLayer[]>([]);
+  const [customDate, setCustomDate] = useState('');
 
   useEffect(() => {
     supabase.from('tasks').select('*').eq('id', id).single().then(({ data }) => setTask(data));
@@ -35,6 +37,29 @@ export default function TaskScreen() {
     router.back();
   }
 
+  async function reopen() {
+    const { error } = await supabase.rpc('reopen_task', { p_task_id: id });
+    if (error) return alert('Oups', error.message);
+    await load();
+    router.back();
+  }
+
+  async function setDue(date: Date | null) {
+    if (!task) return;
+    const due_at = date ? date.toISOString() : null;
+    const { error } = await supabase.from('tasks').update({ due_at }).eq('id', id);
+    if (error) return alert('Oups', error.message);
+    setTask({ ...task, due_at });
+    setCustomDate('');
+    await load();
+  }
+
+  function applyCustomDate() {
+    const d = parseFrenchDate(customDate);
+    if (!d) return alert('Date non comprise', 'Écris-la comme 17/11, ou 17/11 14:30 avec une heure.');
+    setDue(d);
+  }
+
   async function assign(memberId: string | null) {
     if (!task || memberId === task.owner_member_id) return;
     const { error } = await supabase.rpc('assign_task', { p_task_id: id, p_member_id: memberId });
@@ -50,6 +75,14 @@ export default function TaskScreen() {
   const cat = CATEGORY_STYLE[task.category];
   const ctx = task.context as Record<string, string | undefined>;
   const isMine = task.owner_member_id === me?.id;
+  const isDone = task.status === 'done';
+  const quickDates = [
+    { label: "Aujourd'hui", date: dayFromNow(0) },
+    { label: 'Demain', date: dayFromNow(1) },
+    { label: 'Samedi', date: nextWeekday(6) },
+    { label: 'Lundi prochain', date: nextWeekday(1) },
+    { label: 'Dans 2 semaines', date: dayFromNow(14) },
+  ];
 
   return (
     <Screen style={{ paddingHorizontal: 0 }}>
@@ -63,10 +96,32 @@ export default function TaskScreen() {
         </View>
         <Pill bg={cat.bg} fg={cat.fg}>{cat.label}</Pill>
         <Text style={styles.title}>{task.title}</Text>
-        {task.due_at && (
-          <Text style={styles.when}>
-            {new Date(task.due_at).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-          </Text>
+        <Text style={styles.when}>{isDone ? 'Fait ✓' : task.due_at ? formatDue(task.due_at) : 'Pas encore de date'}</Text>
+
+        {!isDone && (
+          <Card>
+            <Text style={styles.label}>{task.due_at ? 'Changer la date' : 'C\u2019est pour quand ?'}</Text>
+            <View style={styles.chips}>
+              {quickDates.map((q) => (
+                <Pressable key={q.label} onPress={() => setDue(q.date)} style={styles.chip}>
+                  <Text style={styles.chipText}>{q.label}</Text>
+                </Pressable>
+              ))}
+              {task.due_at && (
+                <Pressable onPress={() => setDue(null)} style={styles.chip}>
+                  <Text style={styles.chipText}>Sans date</Text>
+                </Pressable>
+              )}
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-end' }}>
+              <View style={{ flex: 1 }}>
+                <Input placeholder="Autre date : 17/11 ou 17/11 14:30" value={customDate} onChangeText={setCustomDate} onSubmitEditing={applyCustomDate} />
+              </View>
+              <Pressable onPress={applyCustomDate} style={styles.okBtn}>
+                <Ionicons name="checkmark" size={22} color={theme.onGradient} />
+              </Pressable>
+            </View>
+          </Card>
         )}
 
         <Card>
@@ -114,8 +169,12 @@ export default function TaskScreen() {
         )}
 
         <View style={{ gap: 10, marginTop: 8 }}>
-          <Button title="C'est fait ✓" onPress={done} variant={isMine ? 'primary' : 'ghost'} />
-          <Button title="Pas une tâche familiale" onPress={dismiss} variant="quiet" />
+          {isDone ? (
+            <Button title="Rouvrir cette tâche" onPress={reopen} variant="ghost" icon={<Ionicons name="arrow-undo" size={16} color={theme.mint} />} />
+          ) : (
+            <Button title="C'est fait ✓" onPress={done} variant={isMine ? 'primary' : 'ghost'} />
+          )}
+          <Button title={isDone ? 'Supprimer de la liste' : 'Pas une tâche familiale'} onPress={dismiss} variant="quiet" />
         </View>
       </ScrollView>
     </Screen>
@@ -126,12 +185,13 @@ const styles = StyleSheet.create({
   close: { alignSelf: 'flex-end', width: 40, height: 40, borderRadius: 20, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.hairline, alignItems: 'center', justifyContent: 'center' },
   heroIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: theme.display, fontSize: 30, color: theme.ink, lineHeight: 36, letterSpacing: -0.5 },
-  when: { fontFamily: theme.bodyMedium, fontSize: 15, color: theme.muted, textTransform: 'capitalize' },
+  when: { fontFamily: theme.bodyMedium, fontSize: 15, color: theme.muted },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1.5, borderColor: theme.line },
   chipOn: { borderColor: theme.mint, backgroundColor: theme.primarySoft },
   chipText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.muted },
+  okBtn: { width: 50, height: 50, borderRadius: 14, backgroundColor: theme.mint, alignItems: 'center', justifyContent: 'center' },
   hint: { fontFamily: theme.body, fontSize: 13, color: theme.muted },
   label: { fontFamily: theme.bodyMedium, fontSize: 12, color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
   value: { fontFamily: theme.body, fontSize: 16, color: theme.ink, lineHeight: 23 },

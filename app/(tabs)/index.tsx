@@ -2,6 +2,7 @@ import { alert } from '@/lib/alert';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore, type TipRequest } from '@/lib/store';
@@ -211,6 +212,7 @@ export default function Today() {
         {recent.length > 0 && !childFilter && (
           <View style={{ gap: 10 }}>
             <Text style={styles.day}>Fait cette semaine</Text>
+            <Text style={styles.briefWho}>Touche une ligne pour la rouvrir.</Text>
             <Card style={{ gap: 14 }}>
               {recent.map((t) => {
                 const by = t.done_by_member_id ?? t.owner_member_id;
@@ -218,11 +220,13 @@ export default function Today() {
                 const thanked = thankedTaskIds.includes(t.id);
                 return (
                   <View key={t.id} style={styles.doneRow}>
-                    <Ionicons name="checkmark-circle" size={22} color={theme.mint} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.doneTitle} numberOfLines={2}>{t.title}</Text>
-                      <Text style={styles.doneBy}>{by === me?.id ? 'par toi' : by ? `par ${nameOf(by)}` : ''}</Text>
-                    </View>
+                    <Pressable onPress={() => router.push(`/task/${t.id}`)} style={styles.doneOpen}>
+                      <Ionicons name="checkmark-circle" size={22} color={theme.mint} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.doneTitle} numberOfLines={2}>{t.title}</Text>
+                        <Text style={styles.doneBy}>{by === me?.id ? 'par toi' : by ? `par ${nameOf(by)}` : ''}</Text>
+                      </View>
+                    </Pressable>
                     {canThank &&
                       (thanked ? (
                         <Text style={styles.thanked}>Merci envoyé</Text>
@@ -320,6 +324,7 @@ const styles = StyleSheet.create({
   kidInitial: { fontFamily: theme.bodyBold, fontSize: 11, color: theme.onGradient },
   kidText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.muted },
   day: { fontFamily: theme.display, fontSize: 18, color: theme.ink, marginTop: 6, textTransform: 'capitalize' },
+  doneOpen: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   doneRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   doneTitle: { fontFamily: theme.bodyMedium, fontSize: 15, color: theme.inkSoft },
   doneBy: { fontFamily: theme.body, fontSize: 12, color: theme.muted },
