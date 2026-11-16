@@ -3,8 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+// Clés publiques (publishable) : sûres côté client, le RLS protège les données.
+const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://sttsvpqrvzsyqswejrpc.supabase.co';
+const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'sb_publishable_GPqLJF3tin5cstIdavzpyA_okUWhAKz';
 
 // Session stockée dans le Keychain / Keystore, jamais en clair.
 const secureStorage = {
