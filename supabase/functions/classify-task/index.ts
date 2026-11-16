@@ -28,13 +28,14 @@ const SYSTEM = `Tu es l'assistant de Tandem, une app qui rend visible la charge 
 On te donne des éléments bruts (événements d'agenda, phrases dictées par un parent).
 Pour chacun, décide s'il s'agit d'une TÂCHE FAMILIALE ou de gestion du foyer (quelque chose à anticiper, décider ou faire pour la maison, le couple ou les enfants).
 Ignore le travail professionnel, le sport et les loisirs personnels, les réunions pro, les anniversaires de collègues.
-Réponds UNIQUEMENT avec un objet JSON : {"tasks":[{"index":0,"keep":true,"title":"...","category":"sante|ecole|logistique|maison|social|admin","child":"prénom ou null","due_at":"ISO ou null","layers":{"anticipate":true,"decide":true,"execute":false},"context":{"contact":"...","place":"...","notes":"..."}}]}
+Réponds UNIQUEMENT avec un objet JSON : {"tasks":[{"index":0,"keep":true,"title":"...","category":"sante|ecole|logistique|maison|social|admin","size":2,"child":"prénom ou null","due_at":"ISO ou null","layers":{"anticipate":true,"decide":true,"execute":false},"context":{"contact":"...","place":"...","notes":"..."}}]}
 Règles :
 - Une entrée par élément reçu, avec son index.
 - title : court, nominal ou à l'infinitif, en français ("Rdv pédiatre Tom", "Acheter fournitures rentrée").
 - layers : pour une phrase dictée au passé ("j'ai pris rdv"), la personne a anticipé et décidé -> anticipate et decide true ; execute true seulement si elle dit l'avoir fait ou emmené.
   Pour un événement d'agenda futur, le créateur a anticipé -> anticipate true, le reste false.
 - due_at : si la phrase donne un jour ("mardi", "le 3"), calcule la date ISO à partir de la date du jour. Pour un événement d'agenda, reprends starts_at.
+- size : le poids de la tâche pour un parent. 1 = légère (un geste, un coup de fil, un trajet, quelques minutes sans y repenser). 2 = moyenne (un rendez-vous à prendre et à honorer, une démarche simple). 3 = lourde (demande d'anticiper, de comparer ou de coordonner plusieurs personnes : organiser une garde, des vacances, un anniversaire, un dossier d'inscription, des travaux).
 - context : n'inclus que les clés connues, jamais de valeur inventée.
 - keep=false si ce n'est pas une tâche familiale. Une phrase dictée par un parent est presque toujours à garder.`;
 
@@ -112,6 +113,7 @@ Deno.serve(async (req) => {
         keep: boolean;
         title: string;
         category: string;
+        size: number;
         child: string | null;
         due_at: string | null;
         layers: { anticipate: boolean; decide: boolean; execute: boolean };
@@ -132,6 +134,8 @@ Deno.serve(async (req) => {
           household_id,
           title: String(t.title).slice(0, 200),
           category: CATS.includes(t.category) ? t.category : 'logistique',
+          // Poids proposé par l'IA ; s'il est absent, la base en choisit un par défaut.
+          size: [1, 2, 3].includes(t.size) ? t.size : null,
           source: src.source,
           source_ref: src.source_ref,
           child_id: child?.id ?? null,

@@ -23,6 +23,7 @@ export function TaskCard({ task, members, meId, childName }: { task: Task; membe
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <Pill bg={cat.bg} fg={cat.fg}>{cat.label}</Pill>
           {childName ? <Pill bg="rgba(255,255,255,0.08)" fg={theme.inkSoft}>{childName}</Pill> : null}
+          {task.size === 3 ? <Text style={styles.meta}>🏋️ lourde</Text> : task.size === 1 ? <Text style={styles.meta}>🪶 légère</Text> : null}
           {time ? <Text style={styles.meta}>{time}</Text> : null}
           {(task.context as Record<string, unknown>)?.tip ? <Text style={styles.meta}>💡 conseil</Text> : null}
         </View>

@@ -62,7 +62,16 @@ export interface Task {
   created_at: string;
   done_at: string | null;
   done_by_member_id: string | null;
+  /** Poids : 1 légère, 2 moyenne, 3 lourde. Multiplie les points du bilan. */
+  size: 1 | 2 | 3;
+  size_set_by_member_id: string | null;
 }
+
+export const SIZES: { value: 1 | 2 | 3; label: string; emoji: string }[] = [
+  { value: 1, label: 'Légère', emoji: '🪶' },
+  { value: 2, label: 'Moyenne', emoji: '⚖️' },
+  { value: 3, label: 'Lourde', emoji: '🏋️' },
+];
 
 export interface TaskLayer {
   id: string;

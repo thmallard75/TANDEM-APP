@@ -8,7 +8,7 @@ import { useStore } from '@/lib/store';
 import { Avatar, Button, Card, Input, P, Pill, Screen } from '@/components/ui';
 import { dayFromNow, formatDue, nextWeekday, parseFrenchDate } from '@/lib/dates';
 import { CATEGORY_STYLE, theme } from '@/lib/theme';
-import { LAYER_LABEL, type Task, type TaskLayer } from '@/lib/types';
+import { LAYER_LABEL, SIZES, type Task, type TaskLayer } from '@/lib/types';
 
 export default function TaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -54,6 +54,14 @@ export default function TaskScreen() {
     await load();
   }
 
+  async function setSize(size: 1 | 2 | 3) {
+    if (!task || !me || size === task.size) return;
+    const { error } = await supabase.from('tasks').update({ size, size_set_by_member_id: me.id }).eq('id', id);
+    if (error) return alert('Oups', error.message);
+    setTask({ ...task, size, size_set_by_member_id: me.id });
+    await load();
+  }
+
   function applyCustomDate() {
     const d = parseFrenchDate(customDate);
     if (!d) return alert('Date non comprise', 'Écris-la comme 17/11, ou 17/11 14:30 avec une heure.');
@@ -76,6 +84,7 @@ export default function TaskScreen() {
   const ctx = task.context as Record<string, string | undefined>;
   const isMine = task.owner_member_id === me?.id;
   const isDone = task.status === 'done';
+  const sizeSetBy = members.find((m) => m.id === task.size_set_by_member_id);
   const quickDates = [
     { label: "Aujourd'hui", date: dayFromNow(0) },
     { label: 'Demain', date: dayFromNow(1) },
@@ -151,6 +160,27 @@ export default function TaskScreen() {
               ))}
             </View>
           )}
+        </Card>
+
+        <Card>
+          <Text style={styles.label}>Quel poids pour cette tâche ?</Text>
+          <View style={styles.chips}>
+            {SIZES.map((sz) => {
+              const on = task.size === sz.value;
+              return (
+                <Pressable key={sz.value} onPress={() => setSize(sz.value)} style={[styles.chip, on && styles.chipOn]}>
+                  <Text style={{ fontSize: 15 }}>{sz.emoji}</Text>
+                  <Text style={[styles.chipText, on && { color: theme.ink }]}>{sz.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.hint}>
+            {sizeSetBy
+              ? `Réglé par ${sizeSetBy.id === me?.id ? 'toi' : sizeSetBy.display_name}. `
+              : 'Proposé automatiquement. '}
+            Une tâche lourde compte trois fois plus dans le bilan qu'une légère.
+          </Text>
         </Card>
 
         {(ctx.contact || ctx.place || ctx.notes || ctx.tip) && (
