@@ -1,0 +1,7 @@
+-- Appliquée le 2026-11-16 via MCP (voir l'historique des migrations Supabase pour le SQL complet) :
+--   ingest_items(jsonb)            classement par mots-clés, secours quand l'IA est absente
+--   propose_library_tasks()        tâches saisonnières (lead_days + 7 jours avant l'échéance)
+--   generate_my_weekly_report()    bilan de la semaine pour le foyer de l'appelant
+--   generate_all_weekly_reports()  appelée par pg_cron, dimanche 17:00 UTC
+--   cron.schedule('tandem-weekly-report', '0 17 * * 0', 'select public.generate_all_weekly_reports()')
+-- Export du SQL : supabase db pull

@@ -15,31 +15,43 @@ export default function Bilan() {
   const { household, members, me, load } = useStore();
   const partner = partnerOf(me, members);
   const [report, setReport] = useState<WeeklyReport | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const fetchReport = useCallback(async () => {
+    if (!household) return;
+    const { data } = await supabase
+      .from('weekly_reports')
+      .select('*')
+      .eq('household_id', household.id)
+      .order('week_start', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setReport(data);
+    if (data && !data.opened_at) {
+      supabase.from('weekly_reports').update({ opened_at: new Date().toISOString() }).eq('id', data.id).then(() => {});
+    }
+  }, [household?.id]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!household) return;
-      supabase
-        .from('weekly_reports')
-        .select('*')
-        .eq('household_id', household.id)
-        .order('week_start', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-        .then(({ data }) => {
-          setReport(data);
-          if (data && !data.opened_at) {
-            supabase.from('weekly_reports').update({ opened_at: new Date().toISOString() }).eq('id', data.id).then();
-          }
-        });
-    }, [household?.id]),
+      fetchReport();
+    }, [fetchReport]),
   );
+
+  async function generate() {
+    setGenerating(true);
+    const { error } = await supabase.rpc('generate_my_weekly_report');
+    setGenerating(false);
+    if (error) return alert('Oups', error.message);
+    await fetchReport();
+  }
 
   async function accept(taskId: string) {
     const { error } = await supabase.rpc('accept_transfer', { p_task_id: taskId });
     if (error) return alert('Oups', error.message);
     alert('C’est à toi', 'Les rappels et le contexte de cette tâche sont maintenant chez toi.');
     await load();
+    await generate();
   }
 
   if (!partner) {
@@ -56,6 +68,7 @@ export default function Bilan() {
       <Screen>
         <Header eyebrow="Bilan" title="Dimanche soir" />
         <Empty emoji="🕯️" title="Le premier bilan arrive dimanche à 18h" text="D'ici là, Tandem note tout ce que vous gérez, chacun de votre côté." />
+        <Button title="Voir le bilan maintenant" onPress={generate} loading={generating} variant="ghost" />
       </Screen>
     );
   }
@@ -105,6 +118,8 @@ export default function Bilan() {
             <Text style={{ color: theme.primary }}>●</Text> {me!.display_name}   <Text style={{ color: theme.sandDeep }}>●</Text> {partner.display_name}
           </Text>
         </Card>
+
+        <Button title="Mettre à jour le bilan" onPress={generate} loading={generating} variant="quiet" />
 
         {report.suggestions.length > 0 && (
           <>

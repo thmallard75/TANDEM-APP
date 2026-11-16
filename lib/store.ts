@@ -29,6 +29,9 @@ export const useStore = create<State>((set, get) => ({
     const { data: me } = await supabase.from('members').select('*').eq('user_id', uid).maybeSingle();
     if (!me) return set({ loading: false, household: null, me: null });
 
+    // La bibliothèque propose les tâches de saison qui approchent (sans doublon).
+    await supabase.rpc('propose_library_tasks').then(() => {}, () => {});
+
     const [{ data: household }, { data: members }, { data: children }, { data: tasks }] = await Promise.all([
       supabase.from('households').select('*').eq('id', me.household_id).single(),
       supabase.from('members').select('*').eq('household_id', me.household_id),

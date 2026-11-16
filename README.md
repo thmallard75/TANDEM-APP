@@ -6,46 +6,32 @@ Cadrage complet : https://claude.ai/artifact/KQ7zHFP3hpJB3vwSCMBYXD
 
 ## État au 16/11/2026
 
+En ligne : https://tandem-app-3big.vercel.app (chaque push sur `main` redéploie).
+
 | Brique | État |
 | --- | --- |
-| Supabase `tandem` (eu-west-3) | Créé. Schéma, RLS, RPC et 50 tâches de bibliothèque appliqués. |
-| App Expo (Expo Router, TypeScript) | Écrite : login par lien magique, onboarding foyer, Aujourd'hui, Bilan, Tâche, Foyer. |
-| Edge functions `classify-task`, `weekly-report` | Écrites, **à déployer** (voir ci-dessous). |
-| Cron du dimanche | SQL prêt dans `supabase/migrations/0004`, **à exécuter après déploiement**. |
-| Gmail | v1.1 — déposer la demande OAuth chez Google dès maintenant (2 à 4 semaines). |
+| Supabase `tandem` (eu-west-3) | Schéma, RLS, RPC, 50 tâches de bibliothèque. |
+| Ajout de tâches (« J'ai géré… », calendrier) | Fonctionne. IA si la clé est posée, sinon classement par mots-clés (`ingest_items`). |
+| Tâches saisonnières | Fonctionne : proposées à chaque ouverture (`propose_library_tasks`). |
+| Bilan hebdo | Fonctionne : calcul SQL, cron dimanche 17:00 UTC, bouton « Voir le bilan maintenant ». |
+| Edge function `classify-task` | Déployée. Sans secret `ANTHROPIC_API_KEY`, elle rend la main au classement par mots-clés. |
+| Edge function `weekly-report` | Non déployée : variante IA du bilan, optionnelle. |
+| Gmail | v1.1, après validation OAuth Google. |
 
-## Lancer l'app (10 minutes)
+## Activer l'IA (2 minutes, optionnel)
+
+Supabase → projet tandem → Edge Functions → Secrets → ajouter `ANTHROPIC_API_KEY` (clé créée sur console.anthropic.com).
+Les titres deviennent propres (« Rdv pédiatre Tom »), les dates dictées sont comprises et le tri du calendrier est plus fin.
+
+## Réglages Supabase à faire une fois
+
+Authentication → URL Configuration : Site URL `https://tandem-app-3big.vercel.app`, Redirect URLs `https://tandem-app-3big.vercel.app/**`, `tandem://**`, `exp://**`.
+
+## Développement local
 
 ```bash
 npm install
-cp .env.example .env          # clés déjà renseignées (publishable key, pas secrète)
-npx expo start                # puis "i" (simulateur iOS) ou scanner avec Expo Go
-```
-
-Dans Supabase → Authentication → URL Configuration, ajouter `tandem://` aux Redirect URLs pour que le lien magique rouvre l'app.
-
-## Déployer le backend (15 minutes)
-
-```bash
-npm i -g supabase
-supabase login
-supabase link --project-ref sttsvpqrvzsyqswejrpc
-
-# Clés : Anthropic (console.anthropic.com) et un secret cron au hasard
-supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-supabase secrets set CRON_SECRET=$(openssl rand -hex 16)
-
-supabase functions deploy classify-task
-supabase functions deploy weekly-report --no-verify-jwt
-```
-
-Puis dans le SQL Editor, coller `supabase/migrations/0004_cron_weekly_report.sql` en remplaçant `<CRON_SECRET>` par la valeur choisie.
-
-Tester le bilan sans attendre dimanche :
-
-```bash
-curl -X POST https://sttsvpqrvzsyqswejrpc.supabase.co/functions/v1/weekly-report \
-  -H "x-cron-secret: <CRON_SECRET>"
+npx expo start --web        # ou --tunnel pour Expo Go
 ```
 
 ## Structure
