@@ -14,7 +14,12 @@ import { theme } from '@/lib/theme';
 
 export function Screen({ children, style }: { children: ReactNode; style?: ViewStyle }) {
   const insets = useSafeAreaInsets();
-  return <View style={[styles.screen, { paddingTop: insets.top + 12 }, style]}>{children}</View>;
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bgDeep, alignItems: 'center' }}>
+      {/* Sur ordinateur, l'app reste une colonne "téléphone" centrée. */}
+      <View style={[styles.screen, { paddingTop: insets.top + 12 }, style]}>{children}</View>
+    </View>
+  );
 }
 
 /** En-tête éditorial : surtitre discret + grand titre serif. */
@@ -117,7 +122,7 @@ export function Empty({ emoji, title, text }: { emoji: string; title: string; te
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 20, gap: 16 },
+  screen: { flex: 1, width: '100%', maxWidth: 480, backgroundColor: theme.bg, paddingHorizontal: 20, gap: 16 },
   header: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 4 },
   eyebrow: { fontFamily: theme.bodyMedium, fontSize: 13, color: theme.muted, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 4 },
   title: { fontFamily: theme.display, fontSize: 34, color: theme.ink, letterSpacing: -0.5, lineHeight: 40 },
