@@ -12,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState('');
   const [verifying, setVerifying] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   async function send() {
     if (!email.includes('@')) return alert('Entre une adresse email valide');
@@ -23,6 +24,21 @@ export default function Login() {
     setLoading(false);
     if (error) return alert('Oups', error.message);
     setSent(true);
+  }
+
+  // Phase de test : compte invité, sans email. La session reste dans ce navigateur / ce téléphone.
+  async function guest() {
+    setGuestLoading(true);
+    const { error } = await supabase.auth.signInAnonymously();
+    setGuestLoading(false);
+    if (error) {
+      return alert(
+        'Mode invité pas encore activé',
+        /disabled/i.test(error.message)
+          ? 'Dans Supabase : Authentication → Sign In / Providers → activer « Allow anonymous sign-ins ».'
+          : error.message,
+      );
+    }
   }
 
   async function verify() {
@@ -87,6 +103,8 @@ export default function Login() {
             </>
           )}
         </Card>
+
+        {!sent && <Button title="Tester sans email" onPress={guest} loading={guestLoading} variant="ghost" />}
 
         <Text style={styles.foot}>Lecture seule sur tes calendriers. Rien n'est modifié, rien n'est partagé.</Text>
       </Screen>
