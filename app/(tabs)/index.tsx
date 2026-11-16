@@ -55,7 +55,7 @@ const timeOf = (iso: string) => {
 };
 
 export default function Today() {
-  const { tasks, recent, members, children, me, household, thanksIn, thankedTaskIds, tipRequests, load, celebrate } = useStore();
+  const { tasks, recent, members, children, me, household, thanksIn, thankedTaskIds, tipRequests, tipsIn, load, celebrate } = useStore();
   const partner = partnerOf(me, members);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
@@ -109,6 +109,11 @@ export default function Today() {
     await load();
   }
 
+  async function seenTip(id: string) {
+    await supabase.from('transfers').update({ tip_seen_at: new Date().toISOString() }).eq('id', id);
+    await load();
+  }
+
   async function seenThanks(id: string) {
     await supabase.from('thanks').update({ seen_at: new Date().toISOString() }).eq('id', id);
     await load();
@@ -139,6 +144,21 @@ export default function Today() {
               <Ionicons name="close" size={22} color={theme.onGradient} />
             </Pressable>
           </LinearGradient>
+        ))}
+
+        {tipsIn.map((t) => (
+          <Card key={t.id} style={styles.tipIn}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 24 }}>💡</Text>
+              <Text style={[styles.briefTitle, { flex: 1 }]}>{nameOf(t.from_member_id) || 'Ton partenaire'} t'a laissé un conseil</Text>
+              <Pressable onPress={() => seenTip(t.id)} hitSlop={10}>
+                <Ionicons name="close" size={22} color={theme.muted} />
+              </Pressable>
+            </View>
+            <Text style={styles.briefWho}>pour « {t.title} »</Text>
+            <Text style={styles.tipText}>{t.tip}</Text>
+            <Button title="Voir la tâche" onPress={() => router.push(`/task/${t.task_id}`)} variant="ghost" />
+          </Card>
         ))}
 
         {tipRequests.map((t) => (
@@ -310,6 +330,8 @@ const styles = StyleSheet.create({
   thanks: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: theme.radius, padding: 16 },
   thanksTitle: { fontFamily: theme.display, fontSize: 18, color: theme.onGradient },
   thanksText: { fontFamily: theme.bodyMedium, fontSize: 14, color: 'rgba(16,23,43,0.8)' },
+  tipIn: { borderColor: 'rgba(245,196,81,0.45)' },
+  tipText: { fontFamily: theme.bodyMedium, fontSize: 16, color: theme.ink, lineHeight: 23 },
   briefTitle: { fontFamily: theme.display, fontSize: 18, color: theme.ink },
   briefRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   briefTime: { fontFamily: theme.bodyBold, fontSize: 14, color: theme.mint, width: 48 },

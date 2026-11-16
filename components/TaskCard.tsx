@@ -24,6 +24,7 @@ export function TaskCard({ task, members, meId, childName }: { task: Task; membe
           <Pill bg={cat.bg} fg={cat.fg}>{cat.label}</Pill>
           {childName ? <Pill bg="rgba(255,255,255,0.08)" fg={theme.inkSoft}>{childName}</Pill> : null}
           {time ? <Text style={styles.meta}>{time}</Text> : null}
+          {(task.context as Record<string, unknown>)?.tip ? <Text style={styles.meta}>💡 conseil</Text> : null}
         </View>
       </View>
       {owner ? (

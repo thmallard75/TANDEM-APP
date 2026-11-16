@@ -4,6 +4,7 @@ import { syncIcs } from './ics';
 import type { Household, Member, Child, Task } from './types';
 
 export interface ThanksIn { id: string; task_id: string; from_member_id: string; title: string }
+export interface TipIn { id: string; task_id: string; from_member_id: string | null; title: string; tip: string }
 export interface TipRequest { id: string; task_id: string; to_member_id: string; title: string }
 
 interface State {
@@ -21,6 +22,8 @@ interface State {
   thankedTaskIds: string[];
   /** Tâches qu'on m'a reprises : l'app me propose de laisser un conseil. */
   tipRequests: TipRequest[];
+  /** Conseils qu'on m'a laissés et que je n'ai pas encore lus. */
+  tipsIn: TipIn[];
   celebration: string | null;
   load: () => Promise<void>;
   reset: () => void;
@@ -55,6 +58,7 @@ export const useStore = create<State>((set, get) => ({
   thanksIn: [],
   thankedTaskIds: [],
   tipRequests: [],
+  tipsIn: [],
   celebration: null,
 
   async load() {
@@ -69,7 +73,7 @@ export const useStore = create<State>((set, get) => ({
     await supabase.rpc('propose_library_tasks').then(() => {}, () => {});
 
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-    const [household, members, children, tasks, recent, thanksIn, thanked, tips] = await Promise.all([
+    const [household, members, children, tasks, recent, thanksIn, thanked, tips, tipsIn] = await Promise.all([
       supabase.from('households').select('*').eq('id', me.household_id).single(),
       supabase.from('members').select('*').eq('household_id', me.household_id).order('created_at'),
       supabase.from('children').select('*').eq('household_id', me.household_id).order('created_at'),
@@ -97,6 +101,12 @@ export const useStore = create<State>((set, get) => ({
         .is('tip', null)
         .eq('tip_dismissed', false)
         .gte('accepted_at', weekAgo),
+      supabase
+        .from('transfers')
+        .select('id, task_id, from_member_id, tip, tasks(title)')
+        .eq('to_member_id', me.id)
+        .not('tip', 'is', null)
+        .is('tip_seen_at', null),
     ]);
 
     set({
@@ -109,6 +119,7 @@ export const useStore = create<State>((set, get) => ({
       recent: recent.data ?? [],
       thanksIn: (thanksIn.data ?? []).map((r: any) => ({ id: r.id, task_id: r.task_id, from_member_id: r.from_member_id, title: titleOf(r) })),
       thankedTaskIds: (thanked.data ?? []).map((r: any) => r.task_id),
+      tipsIn: (tipsIn.data ?? []).map((r: any) => ({ id: r.id, task_id: r.task_id, from_member_id: r.from_member_id, title: titleOf(r), tip: r.tip })),
       tipRequests: (tips.data ?? []).map((r: any) => ({ id: r.id, task_id: r.task_id, to_member_id: r.to_member_id, title: titleOf(r) })),
     });
 
@@ -123,7 +134,7 @@ export const useStore = create<State>((set, get) => ({
   },
 
   reset() {
-    set({ loading: false, household: null, members: [], me: null, children: [], tasks: [], recent: [], thanksIn: [], thankedTaskIds: [], tipRequests: [] });
+    set({ loading: false, household: null, members: [], me: null, children: [], tasks: [], recent: [], thanksIn: [], thankedTaskIds: [], tipRequests: [], tipsIn: [] });
   },
 
   celebrate(message) {
