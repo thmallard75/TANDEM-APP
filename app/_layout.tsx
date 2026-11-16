@@ -35,9 +35,15 @@ export default function RootLayout() {
     if (session === undefined || loading || !fontsLoaded) return;
     SplashScreen.hideAsync().catch(() => {});
     const inAuth = segments[0] === '(auth)';
-    if (!session && !inAuth) router.replace('/(auth)/login');
-    else if (session && !household && segments[1] !== 'onboarding') router.replace('/(auth)/onboarding');
-    else if (session && household && inAuth) router.replace('/(tabs)');
+    const page = segments[1] as string | undefined;
+    if (!session) {
+      // Déconnecté : toujours l'écran de connexion (y compris depuis l'onboarding).
+      if (!inAuth || page !== 'login') router.replace('/(auth)/login');
+    } else if (!household) {
+      if (!inAuth || page !== 'onboarding') router.replace('/(auth)/onboarding');
+    } else if (inAuth) {
+      router.replace('/(tabs)');
+    }
   }, [session, household, loading, segments, fontsLoaded]);
 
   if (!fontsLoaded || session === undefined || (session && loading)) {
