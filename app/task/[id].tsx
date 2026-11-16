@@ -11,7 +11,7 @@ import { LAYER_LABEL, type Task, type TaskLayer } from '@/lib/types';
 
 export default function TaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { members, me, load } = useStore();
+  const { members, me, load, celebrate } = useStore();
   const [task, setTask] = useState<Task | null>(null);
   const [layers, setLayers] = useState<TaskLayer[]>([]);
 
@@ -20,12 +20,17 @@ export default function TaskScreen() {
     supabase.from('task_layers').select('*').eq('task_id', id).then(({ data }) => setLayers(data ?? []));
   }, [id]);
 
-  async function setStatus(status: 'done' | 'dismissed') {
-    const { error } = await supabase.from('tasks').update({ status }).eq('id', id);
+  async function done() {
+    const { error } = await supabase.rpc('complete_task', { p_task_id: id });
     if (error) return alert('Oups', error.message);
-    if (status === 'done' && me) {
-      await supabase.from('task_layers').insert({ task_id: id, layer: 'execute', member_id: me.id, weight: 1 });
-    }
+    celebrate();
+    await load();
+    router.back();
+  }
+
+  async function dismiss() {
+    const { error } = await supabase.from('tasks').update({ status: 'dismissed' }).eq('id', id);
+    if (error) return alert('Oups', error.message);
     await load();
     router.back();
   }
@@ -93,18 +98,24 @@ export default function TaskScreen() {
           )}
         </Card>
 
-        {(ctx.contact || ctx.place || ctx.notes) && (
+        {(ctx.contact || ctx.place || ctx.notes || ctx.tip) && (
           <Card tint>
             <Text style={styles.label}>Pour reprendre la main</Text>
             {ctx.contact && <Text style={styles.value}>📞 {ctx.contact}</Text>}
             {ctx.place && <Text style={styles.value}>📍 {ctx.place}</Text>}
             {ctx.notes && <Text style={styles.value}>{ctx.notes}</Text>}
+            {ctx.tip && (
+              <Text style={styles.value}>
+                💡 {ctx.tip}
+                {ctx.tip_from ? <Text style={{ color: theme.muted }}> — {ctx.tip_from}</Text> : null}
+              </Text>
+            )}
           </Card>
         )}
 
         <View style={{ gap: 10, marginTop: 8 }}>
-          <Button title="C'est fait ✓" onPress={() => setStatus('done')} variant={isMine ? 'primary' : 'ghost'} />
-          <Button title="Pas une tâche familiale" onPress={() => setStatus('dismissed')} variant="quiet" />
+          <Button title="C'est fait ✓" onPress={done} variant={isMine ? 'primary' : 'ghost'} />
+          <Button title="Pas une tâche familiale" onPress={dismiss} variant="quiet" />
         </View>
       </ScrollView>
     </Screen>

@@ -10,6 +10,7 @@ import { useStore } from '@/lib/store';
 import { useAppFonts } from '@/lib/fonts';
 import { theme } from '@/lib/theme';
 import { captureInviteFromUrl } from '@/lib/invite';
+import { Celebration } from '@/components/Celebration';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 captureInviteFromUrl();
@@ -64,6 +65,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="task/[id]" options={{ presentation: 'modal' }} />
       </Stack>
+      <Celebration />
     </SafeAreaProvider>
   );
 }

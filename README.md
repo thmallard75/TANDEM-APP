@@ -14,13 +14,13 @@ En ligne : https://tandem-app-3big.vercel.app (chaque push sur `main` redéploie
 | Ajout de tâches (« J'ai géré… », calendrier) | Fonctionne. IA si la clé est posée, sinon classement par mots-clés (`ingest_items`). |
 | Tâches saisonnières | Fonctionne : proposées à chaque ouverture (`propose_library_tasks`). |
 | Bilan hebdo | Fonctionne : calcul SQL, cron dimanche 17:00 UTC, bouton « Voir le bilan maintenant ». |
-| Edge function `classify-task` | Déployée. Sans secret `ANTHROPIC_API_KEY`, elle rend la main au classement par mots-clés. |
-| Edge function `weekly-report` | Non déployée : variante IA du bilan, optionnelle. |
+| Edge function `classify-task` | Déployée, appelle OpenAI. Sans secret `OPENAI_API_KEY`, elle rend la main au classement par mots-clés. |
+| Edge function `fetch-ics` | Déployée : lit l'agenda en ligne (lien iCal) du membre connecté. |
 | Gmail | v1.1, après validation OAuth Google. |
 
 ## Activer l'IA (2 minutes, optionnel)
 
-Supabase → projet tandem → Edge Functions → Secrets → ajouter `ANTHROPIC_API_KEY` (clé créée sur console.anthropic.com).
+Supabase → projet tandem → Edge Functions → Secrets → ajouter `OPENAI_API_KEY` (clé créée sur platform.openai.com). Optionnel : `OPENAI_MODEL` pour forcer un modèle.
 Les titres deviennent propres (« Rdv pédiatre Tom »), les dates dictées sont comprises et le tri du calendrier est plus fin.
 
 ## Réglages Supabase à faire une fois

@@ -59,6 +59,8 @@ export interface Task {
   status: Status;
   context: Record<string, unknown>;
   created_at: string;
+  done_at: string | null;
+  done_by_member_id: string | null;
 }
 
 export interface TaskLayer {
