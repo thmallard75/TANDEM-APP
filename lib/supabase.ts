@@ -21,6 +21,7 @@ export const supabase = createClient(url, anonKey, {
     storage: secureStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // Sur le web, la session arrive dans l'URL du lien magique ; en natif, via le deep link.
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
