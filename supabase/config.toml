@@ -1,0 +1,7 @@
+project_id = "sttsvpqrvzsyqswejrpc"
+
+[functions.classify-task]
+verify_jwt = true
+
+[functions.weekly-report]
+verify_jwt = false

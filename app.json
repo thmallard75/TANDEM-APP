@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Tandem",
+    "slug": "tandem",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "tandem",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "fr.tandem.app",
+      "infoPlist": {
+        "NSCalendarsFullAccessUsageDescription": "Tandem lit vos calendriers pour repérer les tâches familiales, sans rien modifier.",
+        "NSMicrophoneUsageDescription": "Tandem écoute 3 secondes pour noter ce que vous venez de gérer."
+      }
+    },
+    "android": {
+      "package": "fr.tandem.app",
+      "permissions": ["READ_CALENDAR", "RECORD_AUDIO"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      ["expo-calendar", { "calendarPermission": "Tandem lit vos calendriers pour repérer les tâches familiales." }],
+      ["expo-audio", { "microphonePermission": "Tandem écoute 3 secondes pour noter ce que vous venez de gérer." }],
+      "expo-notifications"
+    ],
+    "experiments": { "typedRoutes": true },
+    "extra": {
+      "eas": { "projectId": "" }
+    }
+  }
+}

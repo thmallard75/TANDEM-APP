@@ -1,0 +1,60 @@
+-- Bibliothèque de tâches invisibles (v0 : 50 entrées, France)
+-- trigger: {"kind":"date_rule","month":M,"day":D,"lead_days":N} → proposée N jours avant la date
+--          {"kind":"child_age","age":A} → proposée l'année où un enfant atteint A ans
+--          {"kind":"monthly","day":D} / {"kind":"weekly","dow":1}
+insert into library_tasks (title, category, trigger, default_layers) values
+-- Rentrée / école
+('Acheter les fournitures scolaires', 'ecole', '{"kind":"date_rule","month":9,"day":1,"lead_days":21}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Souscrire l''assurance scolaire', 'admin', '{"kind":"date_rule","month":9,"day":1,"lead_days":14}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Inscrire à la cantine et au périscolaire', 'ecole', '{"kind":"date_rule","month":9,"day":1,"lead_days":45}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Vérifier les horaires de rentrée et la liste de classe', 'ecole', '{"kind":"date_rule","month":9,"day":1,"lead_days":5}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Remplir les fiches de renseignements de l''école', 'admin', '{"kind":"date_rule","month":9,"day":5,"lead_days":3}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Prévoir les activités du mercredi (sport, musique)', 'logistique', '{"kind":"date_rule","month":9,"day":10,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Fournir le certificat médical pour le sport', 'sante', '{"kind":"date_rule","month":9,"day":15,"lead_days":21}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Marquer les vêtements et affaires au nom de l''enfant', 'logistique', '{"kind":"date_rule","month":9,"day":1,"lead_days":7}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Réunion de rentrée parents-enseignants', 'ecole', '{"kind":"date_rule","month":9,"day":20,"lead_days":7}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Payer la coopérative scolaire', 'admin', '{"kind":"date_rule","month":10,"day":1,"lead_days":7}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Organiser la garde des vacances de la Toussaint', 'logistique', '{"kind":"date_rule","month":10,"day":18,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Organiser la garde des vacances de Noël', 'logistique', '{"kind":"date_rule","month":12,"day":20,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Organiser la garde des vacances d''hiver', 'logistique', '{"kind":"date_rule","month":2,"day":15,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Organiser la garde des vacances de printemps', 'logistique', '{"kind":"date_rule","month":4,"day":12,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Réserver le centre aéré / colonie d''été', 'logistique', '{"kind":"date_rule","month":7,"day":5,"lead_days":90}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Inscription scolaire en mairie (entrée en maternelle)', 'admin', '{"kind":"child_age","age":3}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Inscription au CP', 'admin', '{"kind":"child_age","age":6}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Inscription au collège et choix des options', 'ecole', '{"kind":"child_age","age":11}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Préparer la kermesse / spectacle de fin d''année', 'social', '{"kind":"date_rule","month":6,"day":20,"lead_days":14}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Cadeau de fin d''année pour l''enseignant(e)', 'social', '{"kind":"date_rule","month":7,"day":1,"lead_days":10}', '{"anticipate":2,"decide":2,"execute":1}'),
+-- Santé
+('Rappel de vaccin (DTP, ROR...) : vérifier le carnet', 'sante', '{"kind":"child_age","age":6}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Rappel de vaccin 11-13 ans', 'sante', '{"kind":"child_age","age":11}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Visite annuelle chez le pédiatre / médecin', 'sante', '{"kind":"date_rule","month":1,"day":15,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Contrôle dentaire (M''T dents)', 'sante', '{"kind":"child_age","age":6}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Contrôle de la vue', 'sante', '{"kind":"date_rule","month":8,"day":1,"lead_days":21}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Renouveler l''ordonnance / traitement en cours', 'sante', '{"kind":"monthly","day":1}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Vérifier la pharmacie familiale (doliprane, thermomètre)', 'sante', '{"kind":"date_rule","month":10,"day":1,"lead_days":0}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Rendez-vous orthodontiste', 'sante', '{"kind":"child_age","age":9}', '{"anticipate":3,"decide":2,"execute":1}'),
+-- Admin / finances
+('Déclaration d''impôts (frais de garde, parts)', 'admin', '{"kind":"date_rule","month":5,"day":25,"lead_days":30}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Attestation CAF / Pajemploi à jour', 'admin', '{"kind":"date_rule","month":1,"day":31,"lead_days":21}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Renouveler la carte d''identité / passeport des enfants', 'admin', '{"kind":"date_rule","month":3,"day":1,"lead_days":60}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Mettre à jour la mutuelle (ayants droit)', 'admin', '{"kind":"date_rule","month":1,"day":10,"lead_days":14}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Renouveler l''abonnement transport scolaire', 'admin', '{"kind":"date_rule","month":8,"day":20,"lead_days":21}', '{"anticipate":3,"decide":1,"execute":1}'),
+('Déclarer / payer la nounou ou l''assistante maternelle', 'admin', '{"kind":"monthly","day":1}', '{"anticipate":2,"decide":1,"execute":1}'),
+-- Maison / logistique
+('Trier les vêtements devenus trop petits', 'maison', '{"kind":"date_rule","month":3,"day":15,"lead_days":0}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Trier les vêtements et acheter pour l''hiver', 'maison', '{"kind":"date_rule","month":10,"day":10,"lead_days":0}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Vérifier la taille des chaussures', 'maison', '{"kind":"date_rule","month":9,"day":1,"lead_days":10}', '{"anticipate":2,"decide":1,"execute":1}'),
+('Changer le siège auto / rehausseur', 'logistique', '{"kind":"child_age","age":4}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Préparer les menus et courses de la semaine', 'maison', '{"kind":"weekly","dow":6}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Planifier les repas de la semaine prochaine', 'maison', '{"kind":"weekly","dow":0}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Préparer la valise pour les vacances', 'logistique', '{"kind":"date_rule","month":7,"day":10,"lead_days":5}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Réserver les vacances d''été', 'logistique', '{"kind":"date_rule","month":7,"day":10,"lead_days":120}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Changer l''heure des réveils et routines (passage heure d''hiver)', 'maison', '{"kind":"date_rule","month":10,"day":27,"lead_days":2}', '{"anticipate":2,"decide":1,"execute":1}'),
+-- Social
+('Préparer l''anniversaire d''un enfant (invitations, gâteau, cadeaux)', 'social', '{"kind":"child_birthday","lead_days":21}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Cadeaux d''anniversaire des copains invités', 'social', '{"kind":"weekly","dow":1}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Cadeaux de Noël des enfants', 'social', '{"kind":"date_rule","month":12,"day":24,"lead_days":35}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Cadeaux de Noël famille élargie', 'social', '{"kind":"date_rule","month":12,"day":24,"lead_days":25}', '{"anticipate":3,"decide":2,"execute":1}'),
+('Fête des mères', 'social', '{"kind":"date_rule","month":5,"day":25,"lead_days":10}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Fête des pères', 'social', '{"kind":"date_rule","month":6,"day":15,"lead_days":10}', '{"anticipate":2,"decide":2,"execute":1}'),
+('Organiser la visite aux grands-parents', 'social', '{"kind":"monthly","day":15}', '{"anticipate":2,"decide":2,"execute":1}');
