@@ -1,6 +1,7 @@
 import { alert } from '@/lib/alert';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '@/lib/supabase';
@@ -36,6 +37,7 @@ export default function Bilan() {
   const partner = partnerOf(me, members);
   const [reports, setReports] = useState<WeeklyReport[] | null>(null);
   const [recap, setRecap] = useState<Recap | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!household || !me || !partner) return;
@@ -64,6 +66,17 @@ export default function Bilan() {
       refresh();
     }, [refresh]),
   );
+
+  // Bouton « Actualiser » et geste tirer-pour-rafraîchir : recharge les tâches puis recalcule le bilan.
+  async function manualRefresh() {
+    setRefreshing(true);
+    try {
+      await load();
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   async function accept(taskId: string) {
     const { error } = await supabase.rpc('accept_transfer', { p_task_id: taskId });
@@ -112,6 +125,7 @@ export default function Bilan() {
       <Screen>
         <Header eyebrow="Bilan" title="Météo du foyer" />
         <Empty emoji="🌱" title="Rien à mesurer pour l'instant" text="Notez ce que vous gérez, chacun de votre côté : le bilan se construit tout seul." />
+        <Button title="Actualiser" onPress={manualRefresh} loading={refreshing} variant="ghost" />
       </Screen>
     );
   }
@@ -130,10 +144,19 @@ export default function Bilan() {
 
   return (
     <Screen style={{ paddingHorizontal: 0 }}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 16 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 16 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={manualRefresh} tintColor={theme.mint} colors={[theme.mint]} />}
+      >
         <Header
           eyebrow={`Semaine du ${new Date(report.week_start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`}
           title="Météo du foyer"
+          right={
+            <Pressable onPress={manualRefresh} disabled={refreshing} style={styles.refresh} hitSlop={8}>
+              {refreshing ? <ActivityIndicator color={theme.mint} size="small" /> : <Ionicons name="refresh" size={20} color={theme.mint} />}
+            </Pressable>
+          }
         />
 
         <LinearGradient colors={GRADIENT.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
@@ -240,6 +263,7 @@ export default function Bilan() {
 }
 
 const styles = StyleSheet.create({
+  refresh: { width: 42, height: 42, borderRadius: 21, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.hairline, alignItems: 'center', justifyContent: 'center' },
   hero: { borderRadius: 28, padding: 22, gap: 10, alignItems: 'center', ...theme.shadow },
   heroLabel: { fontFamily: theme.display, fontSize: 22, color: theme.onGradient },
   beamZone: { height: 96, width: '100%', alignItems: 'center', justifyContent: 'center' },
