@@ -42,7 +42,13 @@
         }
       ],
       "expo-notifications",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Tandem utilise ta photothèque pour choisir ta photo de profil."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

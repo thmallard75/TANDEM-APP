@@ -38,6 +38,7 @@ export interface Member {
   household_id: string;
   user_id: string;
   display_name: string;
+  avatar_url: string | null;
 }
 
 export interface Child {

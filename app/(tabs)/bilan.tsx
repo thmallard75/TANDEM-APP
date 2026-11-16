@@ -143,9 +143,9 @@ export default function Bilan() {
 
           <View style={styles.beamZone}>
             <View style={[styles.beamWrap, { transform: [{ rotate: `${tilt}deg` }] }]}>
-              <Avatar name={me!.display_name} size={46} tone="dark" />
+              <Avatar name={me!.display_name} uri={me!.avatar_url} size={46} tone="dark" />
               <View style={styles.beam} />
-              <Avatar name={partner.display_name} size={46} tone="dark" />
+              <Avatar name={partner.display_name} uri={partner.avatar_url} size={46} tone="dark" />
             </View>
             <View style={styles.pivot} />
           </View>
@@ -216,11 +216,11 @@ export default function Bilan() {
               <Text style={styles.recapLabel}>choses gérées à deux</Text>
               <View style={styles.recapRow}>
                 <View style={styles.recapCell}>
-                  <Avatar name={me!.display_name} size={28} />
+                  <Avatar name={me!.display_name} uri={me!.avatar_url} size={28} />
                   <Text style={styles.recapSmall}>{recap.mine}</Text>
                 </View>
                 <View style={styles.recapCell}>
-                  <Avatar name={partner.display_name} size={28} tone="sand" />
+                  <Avatar name={partner.display_name} uri={partner.avatar_url} size={28} tone="sand" />
                   <Text style={styles.recapSmall}>{recap.theirs}</Text>
                 </View>
                 {recap.top && (

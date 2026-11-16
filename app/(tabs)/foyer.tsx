@@ -9,6 +9,7 @@ import { getIcsConnector, removeIcs, saveIcsUrl, syncIcs, type IcsConnector } fr
 import { Avatar, Button, Card, Header, Input, P, Screen, SectionTitle } from '@/components/ui';
 import { theme } from '@/lib/theme';
 import { inviteLink } from '@/lib/invite';
+import { pickAndUploadAvatar, removeAvatar } from '@/lib/avatar';
 
 export default function Foyer() {
   const { household, members, me, children, load } = useStore();
@@ -20,6 +21,7 @@ export default function Foyer() {
   const [icsBusy, setIcsBusy] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [pwBusy, setPwBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
 
   async function invite() {
@@ -43,6 +45,28 @@ export default function Foyer() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setIsGuest(!!data.user?.is_anonymous));
   }, []);
+
+  async function changePhoto() {
+    if (!me) return;
+    setPhotoBusy(true);
+    try {
+      if (await pickAndUploadAvatar(me.id)) await load();
+    } catch (e: any) {
+      alert('Photo non enregistrée', e.message ?? 'Réessaie avec une autre image.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function deletePhoto() {
+    if (!me) return;
+    try {
+      await removeAvatar(me.id);
+      await load();
+    } catch (e: any) {
+      alert('Oups', e.message ?? 'Suppression impossible');
+    }
+  }
 
   async function savePassword() {
     if (newPassword.length < 6) return alert('Mot de passe trop court', 'Il faut au moins 6 caractères.');
@@ -123,11 +147,13 @@ export default function Foyer() {
         <Card>
           {members.map((m) => (
             <View key={m.id} style={styles.row}>
-              <Avatar name={m.display_name} size={36} tone={m.id === me?.id ? 'primary' : 'sand'} />
+              <Avatar name={m.display_name} uri={m.avatar_url} size={36} tone={m.id === me?.id ? 'primary' : 'sand'} />
               <Text style={styles.name}>{m.display_name}</Text>
               {m.id === me?.id && <Text style={styles.you}>toi</Text>}
             </View>
           ))}
+          <Button title={me?.avatar_url ? 'Changer ma photo' : 'Ajouter ma photo'} onPress={changePhoto} loading={photoBusy} variant="ghost" icon={<Ionicons name="camera" size={16} color={theme.mint} />} />
+          {me?.avatar_url ? <Button title="Retirer ma photo" onPress={deletePhoto} variant="quiet" /> : null}
           {!partner && (
             <>
               <View style={styles.inviteBox}>

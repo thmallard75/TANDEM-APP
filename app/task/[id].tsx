@@ -76,7 +76,7 @@ export default function TaskScreen() {
               const on = m.id === task.owner_member_id;
               return (
                 <Pressable key={m.id} onPress={() => assign(m.id)} style={[styles.chip, on && styles.chipOn]}>
-                  <Avatar name={m.display_name} size={24} tone={m.id === me?.id ? 'primary' : 'sand'} />
+                  <Avatar name={m.display_name} uri={m.avatar_url} size={24} tone={m.id === me?.id ? 'primary' : 'sand'} />
                   <Text style={[styles.chipText, on && { color: theme.ink }]}>{m.id === me?.id ? 'Moi' : m.display_name}</Text>
                 </Pressable>
               );

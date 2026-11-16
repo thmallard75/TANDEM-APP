@@ -27,7 +27,7 @@ export function TaskCard({ task, members, meId, childName }: { task: Task; membe
         </View>
       </View>
       {owner ? (
-        <Avatar name={owner.display_name} size={30} tone={owner.id === meId ? 'primary' : 'sand'} />
+        <Avatar name={owner.display_name} uri={owner.avatar_url} size={30} tone={owner.id === meId ? 'primary' : 'sand'} />
       ) : (
         <View style={styles.unassigned}><Text style={{ color: theme.muted, fontSize: 16 }}>?</Text></View>
       )}

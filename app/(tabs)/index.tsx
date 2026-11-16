@@ -121,8 +121,8 @@ export default function Today() {
           title="Cette semaine"
           right={
             <View style={{ flexDirection: 'row' }}>
-              {me && <Avatar name={me.display_name} size={36} />}
-              {partner && <View style={{ marginLeft: -10 }}><Avatar name={partner.display_name} size={36} tone="sand" /></View>}
+              {me && <Avatar name={me.display_name} uri={me.avatar_url} size={36} />}
+              {partner && <View style={{ marginLeft: -10 }}><Avatar name={partner.display_name} uri={partner.avatar_url} size={36} tone="sand" /></View>}
             </View>
           }
         />

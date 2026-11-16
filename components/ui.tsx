@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -111,18 +112,31 @@ export function Input(props: TextInputProps & { label?: string }) {
   );
 }
 
-/** Pastille avec l'initiale : dégradé turquoise pour toi, corail pour ton partenaire. */
-export function Avatar({ name, size = 32, tone = 'primary' }: { name: string; size?: number; tone?: 'primary' | 'sand' | 'dark' }) {
+/** Photo de profil si elle existe, sinon l'initiale : dégradé turquoise pour toi, corail pour ton partenaire. */
+export function Avatar({
+  name,
+  uri,
+  size = 32,
+  tone = 'primary',
+}: {
+  name: string;
+  uri?: string | null;
+  size?: number;
+  tone?: 'primary' | 'sand' | 'dark';
+}) {
   const round = { width: size, height: size, borderRadius: size / 2, alignItems: 'center' as const, justifyContent: 'center' as const };
-  const letter = (
+  const ring = Math.max(2, Math.round(size * 0.06));
+  const inner = uri ? (
+    <Image source={{ uri }} style={{ width: size - ring * 2, height: size - ring * 2, borderRadius: size / 2, backgroundColor: theme.card }} />
+  ) : (
     <Text style={{ color: tone === 'dark' ? theme.ink : theme.onGradient, fontFamily: theme.bodyBold, fontSize: size * 0.42 }}>
       {name.trim().charAt(0).toUpperCase()}
     </Text>
   );
-  if (tone === 'dark') return <View style={[round, { backgroundColor: theme.onGradient }]}>{letter}</View>;
+  if (tone === 'dark') return <View style={[round, { backgroundColor: theme.onGradient }]}>{inner}</View>;
   return (
     <LinearGradient colors={tone === 'primary' ? GRADIENT.me : GRADIENT.partner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={round}>
-      {letter}
+      {inner}
     </LinearGradient>
   );
 }
