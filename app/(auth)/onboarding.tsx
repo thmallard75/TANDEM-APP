@@ -62,6 +62,11 @@ export default function Onboarding() {
             </>
           )}
         </Card>
+
+        <P muted style={{ textAlign: 'center', fontSize: 14 }}>
+          Tu as déjà un foyer sur un autre appareil ? Demande-lui son code d'invitation (onglet Foyer), ou reconnecte-toi avec le même email.
+        </P>
+        <Button title="Changer de compte" onPress={() => supabase.auth.signOut()} variant="quiet" />
       </Screen>
     </ScrollView>
   );
