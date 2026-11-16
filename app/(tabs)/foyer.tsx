@@ -68,7 +68,7 @@ export default function Foyer() {
                 <Text style={styles.code}>{household?.invite_code}</Text>
                 <Text style={styles.codeLabel}>code d'invitation</Text>
               </View>
-              <Button title="Inviter mon partenaire" onPress={invite} icon={<Ionicons name="paper-plane" size={16} color="#fff" />} />
+              <Button title="Inviter mon partenaire" onPress={invite} icon={<Ionicons name="paper-plane" size={16} color={theme.onGradient} />} />
             </>
           )}
         </Card>
@@ -88,7 +88,7 @@ export default function Foyer() {
               <Input placeholder="Prénom" value={childName} onChangeText={setChildName} onSubmitEditing={addChild} autoCapitalize="words" />
             </View>
             <Pressable onPress={addChild} style={styles.addBtn}>
-              <Ionicons name="add" size={24} color="#fff" />
+              <Ionicons name="add" size={24} color={theme.onGradient} />
             </Pressable>
           </View>
         </Card>
@@ -97,7 +97,7 @@ export default function Foyer() {
         <Card>
           <View style={styles.row}>
             <View style={[styles.iconBox, { backgroundColor: theme.primarySoft }]}>
-              <Ionicons name="calendar" size={20} color={theme.primary} />
+              <Ionicons name="calendar" size={20} color={theme.mint} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>Calendriers du téléphone</Text>
@@ -127,11 +127,11 @@ const styles = StyleSheet.create({
   name: { fontFamily: theme.bodyMedium, fontSize: 16, color: theme.ink, flex: 1 },
   sub: { fontFamily: theme.body, fontSize: 13, color: theme.muted },
   you: { fontFamily: theme.bodyMedium, fontSize: 12, color: theme.muted },
-  inviteBox: { backgroundColor: theme.bgDeep, borderRadius: theme.radiusSm, padding: 14, alignItems: 'center', gap: 2 },
-  code: { fontFamily: theme.display, fontSize: 24, color: theme.ink, letterSpacing: 2 },
+  inviteBox: { backgroundColor: theme.field, borderWidth: 1, borderColor: theme.line, borderRadius: theme.radiusSm, padding: 14, alignItems: 'center', gap: 2 },
+  code: { fontFamily: theme.display, fontSize: 24, color: theme.mint, letterSpacing: 2 },
   codeLabel: { fontFamily: theme.body, fontSize: 12, color: theme.muted },
   chip: { backgroundColor: theme.primarySoft, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
-  chipText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.primaryDeep },
-  addBtn: { width: 50, height: 50, borderRadius: 14, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
+  chipText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.mint },
+  addBtn: { width: 50, height: 50, borderRadius: 14, backgroundColor: theme.mint, alignItems: 'center', justifyContent: 'center' },
   iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

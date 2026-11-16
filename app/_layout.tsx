@@ -43,14 +43,14 @@ export default function RootLayout() {
   if (!fontsLoaded || session === undefined || (session && loading)) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg }}>
-        <ActivityIndicator color={theme.primary} />
+        <ActivityIndicator color={theme.mint} />
       </View>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />

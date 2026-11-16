@@ -1,11 +1,11 @@
 import { useFonts } from 'expo-font';
-import { Fraunces_600SemiBold, Fraunces_500Medium_Italic } from '@expo-google-fonts/fraunces';
+import { Outfit_500Medium, Outfit_600SemiBold } from '@expo-google-fonts/outfit';
 import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 
 export function useAppFonts() {
   const [loaded] = useFonts({
-    Fraunces_600SemiBold,
-    Fraunces_500Medium_Italic,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
     Inter_400Regular,
     Inter_500Medium,
     Inter_700Bold,

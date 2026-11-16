@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { partnerOf, useStore } from '@/lib/store';
 import { ScoreBar } from '@/components/ScoreBar';
 import { Avatar, Button, Card, Empty, Header, P, Pill, Screen, SectionTitle } from '@/components/ui';
-import { CATEGORY_STYLE, theme } from '@/lib/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { CATEGORY_STYLE, GRADIENT, theme } from '@/lib/theme';
 import type { Category, WeeklyReport } from '@/lib/types';
 
 const CATEGORIES: Category[] = ['sante', 'ecole', 'logistique', 'maison', 'social', 'admin'];
@@ -89,20 +90,20 @@ export default function Bilan() {
           title={balanced ? 'Belle semaine' : 'L’équipe penche'}
         />
 
-        <View style={[styles.hero, balanced && { backgroundColor: theme.primary }]}>
+        <LinearGradient colors={GRADIENT.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <Avatar name={me!.display_name} size={44} />
+            <Avatar name={me!.display_name} size={44} tone="dark" />
             <Text style={styles.heroNum}>
               {pctMe}<Text style={styles.heroSep}> / </Text>{100 - pctMe}
             </Text>
-            <Avatar name={partner.display_name} size={44} tone="sand" />
+            <Avatar name={partner.display_name} size={44} tone="dark" />
           </View>
           <Text style={styles.heroText}>
             {balanced
               ? 'Vous êtes à l’équilibre. Continuez comme ça.'
               : `Cette semaine, la charge penche à ${lean} % côté ${heavier.display_name}. Voici de quoi rééquilibrer.`}
           </Text>
-        </View>
+        </LinearGradient>
 
         <Card>
           {CATEGORIES.map((c) => (
@@ -115,7 +116,7 @@ export default function Bilan() {
             />
           ))}
           <Text style={styles.legend}>
-            <Text style={{ color: theme.primary }}>●</Text> {me!.display_name}   <Text style={{ color: theme.sandDeep }}>●</Text> {partner.display_name}
+            <Text style={{ color: theme.mint }}>●</Text> {me!.display_name}   <Text style={{ color: theme.peach }}>●</Text> {partner.display_name}
           </Text>
         </Card>
 
@@ -148,10 +149,10 @@ export default function Bilan() {
 }
 
 const styles = StyleSheet.create({
-  hero: { backgroundColor: theme.primaryDeep, borderRadius: 28, padding: 24, gap: 16, alignItems: 'center', ...theme.shadow },
-  heroNum: { fontFamily: theme.display, fontSize: 48, color: '#fff', letterSpacing: -1 },
-  heroSep: { color: 'rgba(255,255,255,0.5)', fontSize: 32 },
-  heroText: { fontFamily: theme.body, fontSize: 16, color: 'rgba(255,255,255,0.92)', textAlign: 'center', lineHeight: 24 },
+  hero: { borderRadius: 28, padding: 24, gap: 16, alignItems: 'center', ...theme.shadow },
+  heroNum: { fontFamily: theme.display, fontSize: 52, color: theme.onGradient, letterSpacing: -1.5 },
+  heroSep: { color: 'rgba(16,23,43,0.45)', fontSize: 32 },
+  heroText: { fontFamily: theme.bodyMedium, fontSize: 16, color: 'rgba(16,23,43,0.88)', textAlign: 'center', lineHeight: 24 },
   legend: { fontFamily: theme.body, fontSize: 13, color: theme.muted, textAlign: 'center', marginTop: 4 },
   sugTitle: { fontFamily: theme.display, fontSize: 20, color: theme.ink },
   proposed: { fontFamily: theme.bodyMedium, fontSize: 13, color: theme.muted },

@@ -2,11 +2,12 @@ import { alert } from '@/lib/alert';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { partnerOf, useStore } from '@/lib/store';
 import { submitVoiceNote } from '@/lib/voice';
 import { TaskCard } from '@/components/TaskCard';
 import { Avatar, Button, Card, Empty, Header, Input, P, Screen } from '@/components/ui';
-import { theme } from '@/lib/theme';
+import { GRADIENT, theme } from '@/lib/theme';
 import type { Task } from '@/lib/types';
 
 function dayKey(t: Task) {
@@ -94,9 +95,11 @@ export default function Today() {
         )}
       </ScrollView>
 
-      <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.97 }] }]}>
-        <Ionicons name="mic" size={22} color="#fff" />
-        <Text style={styles.fabText}>J'ai géré…</Text>
+      <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [styles.fabWrap, pressed && { transform: [{ scale: 0.97 }] }]}>
+        <LinearGradient colors={GRADIENT.me} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fab}>
+          <Ionicons name="mic" size={22} color={theme.onGradient} />
+          <Text style={styles.fabText}>J'ai géré…</Text>
+        </LinearGradient>
       </Pressable>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
@@ -121,27 +124,25 @@ export default function Today() {
 }
 
 const styles = StyleSheet.create({
-  statNum: { fontFamily: theme.display, fontSize: 34, color: theme.ink, lineHeight: 38 },
+  statNum: { fontFamily: theme.display, fontSize: 38, color: theme.mint, lineHeight: 38 },
   statLabel: { fontFamily: theme.body, fontSize: 13, color: theme.muted },
   vline: { width: 1, height: 40, backgroundColor: theme.line },
   day: { fontFamily: theme.display, fontSize: 18, color: theme.ink, marginTop: 6, textTransform: 'capitalize' },
-  fab: {
+  fabWrap: {
     position: 'absolute',
     bottom: 20,
     alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: theme.ink,
-    paddingVertical: 16,
-    paddingHorizontal: 26,
     borderRadius: 999,
-    ...theme.shadow,
-    shadowOpacity: 0.22,
+    shadowColor: theme.mint,
+    shadowOpacity: 0.45,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
-  fabText: { fontFamily: theme.bodyBold, fontSize: 16, color: '#fff' },
-  backdrop: { flex: 1, backgroundColor: 'rgba(25,35,60,0.4)' },
-  sheet: { backgroundColor: theme.bg, padding: 20, paddingBottom: 40, gap: 12, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+  fab: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16, paddingHorizontal: 26, borderRadius: 999 },
+  fabText: { fontFamily: theme.bodyBold, fontSize: 16, color: theme.onGradient },
+  backdrop: { flex: 1, backgroundColor: 'rgba(8,12,26,0.65)' },
+  sheet: { backgroundColor: theme.card, borderTopWidth: 1, borderColor: theme.hairline, width: '100%', maxWidth: 480, alignSelf: 'center', padding: 20, paddingBottom: 40, gap: 12, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: theme.line, alignSelf: 'center', marginBottom: 4 },
   sheetTitle: { fontFamily: theme.display, fontSize: 22, color: theme.ink },
 });

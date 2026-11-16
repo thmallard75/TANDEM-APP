@@ -5,7 +5,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "scheme": "tandem",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
@@ -23,7 +23,7 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#19233C"
+        "backgroundColor": "#182038"
       }
     },
     "plugins": [
@@ -56,12 +56,15 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "cover",
-      "backgroundColor": "#19233C"
+      "backgroundColor": "#182038"
     },
     "web": {
       "favicon": "./assets/icon.png",
       "bundler": "metro",
-      "output": "single"
-    }
+      "output": "single",
+      "backgroundColor": "#182038",
+      "themeColor": "#182038"
+    },
+    "backgroundColor": "#182038"
   }
 }

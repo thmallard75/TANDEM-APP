@@ -68,9 +68,9 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  switch: { flexDirection: 'row', backgroundColor: theme.bgDeep, borderRadius: 999, padding: 4 },
+  switch: { flexDirection: 'row', backgroundColor: theme.field, borderWidth: 1, borderColor: theme.line, borderRadius: 999, padding: 4 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center' },
-  tabOn: { backgroundColor: theme.card, ...theme.shadow },
+  tabOn: { backgroundColor: theme.cardTint },
   tabText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.muted },
   tabTextOn: { color: theme.ink },
 });

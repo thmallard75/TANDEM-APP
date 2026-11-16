@@ -33,7 +33,7 @@ export default function Login() {
           <Text style={styles.brand}>Tandem</Text>
           <Text style={styles.tagline}>
             Vois enfin qui porte quoi.{'\n'}
-            <Text style={{ fontFamily: theme.displayItalic }}>Rééquilibre en un geste.</Text>
+            <Text style={{ color: theme.mint }}>Rééquilibre en un geste.</Text>
           </Text>
         </View>
 
@@ -69,8 +69,8 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  mark: { width: 120, height: 120, borderRadius: 32, overflow: 'hidden', ...theme.shadow, shadowOpacity: 0.2 },
-  brand: { fontFamily: theme.display, fontSize: 40, color: theme.ink, letterSpacing: -1 },
+  mark: { width: 120, height: 120, borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(98,212,178,0.35)', shadowColor: theme.mint, shadowOpacity: 0.35, shadowRadius: 30, shadowOffset: { width: 0, height: 0 }, elevation: 8 },
+  brand: { fontFamily: theme.display, fontSize: 44, color: theme.ink, letterSpacing: -1 },
   tagline: { fontFamily: theme.display, fontSize: 20, color: theme.inkSoft, textAlign: 'center', lineHeight: 28 },
   cardTitle: { fontFamily: theme.display, fontSize: 22, color: theme.ink },
   foot: { fontFamily: theme.body, fontSize: 13, color: theme.muted, textAlign: 'center', lineHeight: 19 },

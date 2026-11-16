@@ -102,7 +102,7 @@ export default function TaskScreen() {
 }
 
 const styles = StyleSheet.create({
-  close: { alignSelf: 'flex-end', width: 40, height: 40, borderRadius: 20, backgroundColor: theme.card, alignItems: 'center', justifyContent: 'center', ...theme.shadow },
+  close: { alignSelf: 'flex-end', width: 40, height: 40, borderRadius: 20, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.hairline, alignItems: 'center', justifyContent: 'center' },
   heroIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: theme.display, fontSize: 30, color: theme.ink, lineHeight: 36, letterSpacing: -0.5 },
   when: { fontFamily: theme.bodyMedium, fontSize: 15, color: theme.muted, textTransform: 'capitalize' },

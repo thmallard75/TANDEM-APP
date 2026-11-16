@@ -7,12 +7,13 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.primary,
+        tabBarActiveTintColor: theme.mint,
         tabBarInactiveTintColor: theme.muted,
         tabBarLabelStyle: { fontFamily: theme.bodyMedium, fontSize: 11 },
         tabBarStyle: {
           backgroundColor: theme.card,
-          borderTopWidth: 0,
+          borderTopWidth: 1,
+          borderTopColor: theme.hairline,
           height: 84,
           paddingTop: 10,
           ...theme.shadow,
