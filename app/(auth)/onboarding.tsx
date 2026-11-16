@@ -5,13 +5,15 @@ import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
 import { Button, Card, Header, Input, P, Screen } from '@/components/ui';
 import { theme } from '@/lib/theme';
+import { clearInvite, pendingInvite } from '@/lib/invite';
 
 export default function Onboarding() {
   const load = useStore((s) => s.load);
-  const [mode, setMode] = useState<'create' | 'join'>('create');
+  const invited = pendingInvite();
+  const [mode, setMode] = useState<'create' | 'join'>(invited ? 'join' : 'create');
   const [name, setName] = useState('');
   const [household, setHousehold] = useState('');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(invited ?? '');
   const [loading, setLoading] = useState(false);
 
   async function createHousehold() {
@@ -30,7 +32,9 @@ export default function Onboarding() {
     setLoading(true);
     const { data, error } = await supabase.rpc('join_household', { p_invite_code: code.trim().toLowerCase(), p_display_name: name.trim() });
     setLoading(false);
-    if (error || !data) return alert('Code inconnu', 'Vérifie le code avec ton partenaire.');
+    if (error) return alert('Impossible de rejoindre', error.message);
+    if (!data) return alert('Code inconnu', 'Vérifie le code avec ton partenaire.');
+    clearInvite();
     await load();
   }
 
@@ -38,12 +42,16 @@ export default function Onboarding() {
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <Screen>
         <Header eyebrow="Bienvenue" title="On forme l'équipe" />
-        <P muted>Tandem fonctionne à deux, mais tu peux commencer seul·e et inviter ton partenaire plus tard.</P>
+        <P muted>
+          {invited
+            ? 'Ton partenaire t\u2019a invité·e : mets ton prénom, le code est déjà rempli.'
+            : 'Tandem fonctionne à deux, mais tu peux commencer seul·e et inviter ton partenaire plus tard.'}
+        </P>
 
         <View style={styles.switch}>
           {(['create', 'join'] as const).map((m) => (
             <Pressable key={m} onPress={() => setMode(m)} style={[styles.tab, mode === m && styles.tabOn]}>
-              <Text style={[styles.tabText, mode === m && styles.tabTextOn]}>{m === 'create' ? 'Créer le foyer' : 'J’ai un code'}</Text>
+              <Text style={[styles.tabText, mode === m && styles.tabTextOn]}>{m === 'create' ? 'Créer le foyer' : 'Rejoindre mon partenaire'}</Text>
             </Pressable>
           ))}
         </View>
@@ -57,8 +65,8 @@ export default function Onboarding() {
             </>
           ) : (
             <>
-              <Input label="Code reçu" placeholder="a3f9c1b2d4e5" autoCapitalize="none" value={code} onChangeText={setCode} />
-              <Button title="Rejoindre" onPress={joinHousehold} loading={loading} />
+              <Input label="Code du foyer (envoyé par ton partenaire)" placeholder="a3f9c1b2d4e5" autoCapitalize="none" value={code} onChangeText={setCode} />
+              <Button title="Rejoindre le foyer" onPress={joinHousehold} loading={loading} />
             </>
           )}
         </Card>

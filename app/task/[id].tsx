@@ -30,16 +30,18 @@ export default function TaskScreen() {
     router.back();
   }
 
-  async function takeOver() {
-    const { error } = await supabase.rpc('accept_transfer', { p_task_id: id });
+  async function assign(memberId: string | null) {
+    if (!task || memberId === task.owner_member_id) return;
+    const { error } = await supabase.rpc('assign_task', { p_task_id: id, p_member_id: memberId });
     if (error) return alert('Oups', error.message);
+    setTask({ ...task, owner_member_id: memberId });
+    const { data } = await supabase.from('task_layers').select('*').eq('task_id', id);
+    setLayers(data ?? []);
     await load();
-    router.back();
   }
 
   if (!task) return <Screen><P muted>Chargement…</P></Screen>;
 
-  const owner = members.find((m) => m.id === task.owner_member_id);
   const cat = CATEGORY_STYLE[task.category];
   const ctx = task.context as Record<string, string | undefined>;
   const isMine = task.owner_member_id === me?.id;
@@ -63,13 +65,22 @@ export default function TaskScreen() {
         )}
 
         <Card>
-          <View style={styles.row}>
-            {owner ? <Avatar name={owner.display_name} size={36} tone={isMine ? 'primary' : 'sand'} /> : <View style={styles.noOwner} />}
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Porté par</Text>
-              <Text style={styles.value}>{owner?.display_name ?? 'Personne pour l’instant'}</Text>
-            </View>
+          <Text style={styles.label}>Qui porte cette tâche ?</Text>
+          <View style={styles.chips}>
+            {members.map((m) => {
+              const on = m.id === task.owner_member_id;
+              return (
+                <Pressable key={m.id} onPress={() => assign(m.id)} style={[styles.chip, on && styles.chipOn]}>
+                  <Avatar name={m.display_name} size={24} tone={m.id === me?.id ? 'primary' : 'sand'} />
+                  <Text style={[styles.chipText, on && { color: theme.ink }]}>{m.id === me?.id ? 'Moi' : m.display_name}</Text>
+                </Pressable>
+              );
+            })}
+            <Pressable onPress={() => assign(null)} style={[styles.chip, !task.owner_member_id && styles.chipOn]}>
+              <Text style={[styles.chipText, !task.owner_member_id && { color: theme.ink }]}>À décider</Text>
+            </Pressable>
           </View>
+          {members.length < 2 && <Text style={styles.hint}>Invite ton partenaire depuis Foyer pour pouvoir lui attribuer des tâches.</Text>}
           {layers.length > 0 && (
             <View style={{ gap: 6, marginTop: 4 }}>
               <Text style={styles.label}>Qui a fait quoi</Text>
@@ -92,7 +103,6 @@ export default function TaskScreen() {
         )}
 
         <View style={{ gap: 10, marginTop: 8 }}>
-          {!isMine && <Button title="Je reprends cette tâche" onPress={takeOver} variant="accent" />}
           <Button title="C'est fait ✓" onPress={() => setStatus('done')} variant={isMine ? 'primary' : 'ghost'} />
           <Button title="Pas une tâche familiale" onPress={() => setStatus('dismissed')} variant="quiet" />
         </View>
@@ -107,7 +117,11 @@ const styles = StyleSheet.create({
   title: { fontFamily: theme.display, fontSize: 30, color: theme.ink, lineHeight: 36, letterSpacing: -0.5 },
   when: { fontFamily: theme.bodyMedium, fontSize: 15, color: theme.muted, textTransform: 'capitalize' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  noOwner: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderStyle: 'dashed', borderColor: theme.line },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1.5, borderColor: theme.line },
+  chipOn: { borderColor: theme.mint, backgroundColor: theme.primarySoft },
+  chipText: { fontFamily: theme.bodyMedium, fontSize: 14, color: theme.muted },
+  hint: { fontFamily: theme.body, fontSize: 13, color: theme.muted },
   label: { fontFamily: theme.bodyMedium, fontSize: 12, color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
   value: { fontFamily: theme.body, fontSize: 16, color: theme.ink, lineHeight: 23 },
 });

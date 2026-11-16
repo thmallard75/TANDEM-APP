@@ -9,8 +9,10 @@ import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
 import { useAppFonts } from '@/lib/fonts';
 import { theme } from '@/lib/theme';
+import { captureInviteFromUrl } from '@/lib/invite';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+captureInviteFromUrl();
 
 export default function RootLayout() {
   const fontsLoaded = useAppFonts();

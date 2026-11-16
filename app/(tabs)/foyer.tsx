@@ -8,6 +8,7 @@ import { syncDeviceCalendars } from '@/lib/calendar';
 import { getIcsConnector, removeIcs, saveIcsUrl, syncIcs, type IcsConnector } from '@/lib/ics';
 import { Avatar, Button, Card, Header, Input, P, Screen, SectionTitle } from '@/components/ui';
 import { theme } from '@/lib/theme';
+import { inviteLink } from '@/lib/invite';
 
 export default function Foyer() {
   const { household, members, me, children, load } = useStore();
@@ -23,10 +24,10 @@ export default function Foyer() {
 
   async function invite() {
     if (!household) return;
-    const message = `Rejoins notre foyer sur Tandem avec le code ${household.invite_code} — on verra enfin qui porte quoi 😉`;
+    const message = `Rejoins notre foyer sur Tandem 😉\n\n1. Ouvre ce lien : ${inviteLink(household.invite_code)}\n2. Crée ton compte (email + mot de passe)\n3. Mets ton prénom et touche « Rejoindre le foyer » : le code est déjà rempli.\n\nSi on te le demande, le code est ${household.invite_code}`;
     if (Platform.OS === 'web') {
       await navigator.clipboard?.writeText(message);
-      return alert('Message copié', 'Colle-le dans WhatsApp ou un SMS à ton partenaire.');
+      return alert('Invitation copiée', 'Colle-la dans WhatsApp ou un SMS : elle contient le lien et les 3 étapes.');
     }
     await Share.share({ message });
   }
@@ -131,7 +132,7 @@ export default function Foyer() {
             <>
               <View style={styles.inviteBox}>
                 <Text style={styles.code}>{household?.invite_code}</Text>
-                <Text style={styles.codeLabel}>code d'invitation</Text>
+                <Text style={styles.codeLabel}>code du foyer · à donner à ton partenaire</Text>
               </View>
               <Button title="Inviter mon partenaire" onPress={invite} icon={<Ionicons name="paper-plane" size={16} color={theme.onGradient} />} />
             </>
